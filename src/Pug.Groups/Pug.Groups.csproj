@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Pug.Groups.Common\Pug.Groups.Common.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Pug.Application.ServiceModel" Version="1.0.10" />
+	  <PackageReference Include="Pug.Authorized" Version="0.4.0" />
+	</ItemGroup>
+
+</Project>

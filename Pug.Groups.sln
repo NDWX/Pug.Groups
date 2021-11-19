@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pug.Groups.Common", "src\Pug.Groups.Common\Pug.Groups.Common.csproj", "{821F2E2D-AD68-4EAB-AFB6-F9B098870B06}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pug.Groups", "src\Pug.Groups\Pug.Groups.csproj", "{9B74028C-405D-4691-90BF-E2D1905B202E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pug.Groups.Models", "Pug.Groups.Models\Pug.Groups.Models.csproj", "{AAA8949B-68FF-4DDB-96A9-9D81481D9D88}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{821F2E2D-AD68-4EAB-AFB6-F9B098870B06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{821F2E2D-AD68-4EAB-AFB6-F9B098870B06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{821F2E2D-AD68-4EAB-AFB6-F9B098870B06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{821F2E2D-AD68-4EAB-AFB6-F9B098870B06}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B74028C-405D-4691-90BF-E2D1905B202E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B74028C-405D-4691-90BF-E2D1905B202E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B74028C-405D-4691-90BF-E2D1905B202E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B74028C-405D-4691-90BF-E2D1905B202E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAA8949B-68FF-4DDB-96A9-9D81481D9D88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAA8949B-68FF-4DDB-96A9-9D81481D9D88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAA8949B-68FF-4DDB-96A9-9D81481D9D88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAA8949B-68FF-4DDB-96A9-9D81481D9D88}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
