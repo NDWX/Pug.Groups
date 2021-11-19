@@ -5,7 +5,7 @@ using Pug.Groups.Models;
 
 namespace Pug.Groups.Common
 {
-	internal class Helpers
+	internal static class Helpers
 	{
 		internal static ICollection<string> GetMemberships(Subject subject, string domain, IDataSession dataSession, List<string> evaluatedGroups = null)
 		{
@@ -75,7 +75,7 @@ namespace Pug.Groups.Common
 			return false;
 		}
 
-		internal static bool HasMember(string groupIdentifier, Subject subject, bool recursive, IDataSession dataSession, List<string> inspectedMemberGroups = null)
+		internal static bool GroupHasMember(string groupIdentifier, Subject subject, bool recursive, IDataSession dataSession, List<string> inspectedMemberGroups = null)
 		{
 			IEnumerable<DirectMembership> memberships =
 				dataSession.GetMemberships(groupIdentifier);
@@ -103,7 +103,7 @@ namespace Pug.Groups.Common
 				// prevent current group from being inspected again in recursive inspection
 				inspectedMemberGroups.Add(groupMember.Subject.Identifier);
 
-				if(HasMember(groupMember.Subject.Identifier, subject, recursive, dataSession,
+				if(GroupHasMember(groupMember.Subject.Identifier, subject, recursive, dataSession,
 							inspectedMemberGroups))
 					return true;
 			}

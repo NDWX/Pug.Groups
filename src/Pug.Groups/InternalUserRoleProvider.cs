@@ -20,7 +20,7 @@ namespace Pug.Groups.Common
 			return _applicationData.Execute(
 					(dataSession, context) =>
 					{
-						return Helpers.HasMember(
+						return Helpers.GroupHasMember(
 							context.role,
 							new Subject()
 								{ Identifier = context.user, Type = Authorized.SubjectTypes.User },
@@ -39,7 +39,7 @@ namespace Pug.Groups.Common
 					{
 						foreach(string role in context.roles)
 						{
-							if(!Helpers.HasMember(
+							if(!Helpers.GroupHasMember(
 									role,
 									new Subject()
 										{ Identifier = context.user, Type = Authorized.SubjectTypes.User },
