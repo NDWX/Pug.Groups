@@ -33,7 +33,7 @@ namespace Pug.Groups
 			GroupInfo groupInfo = new GroupInfo()
 				{ Identifier = identifier, Domain = domain, Description = description ?? string.Empty, Name = name };
 			
-			return addGroupAsync(groupInfo);
+			return _AddGroupAsync(groupInfo);
 		}
 
 		public Task<IEnumerable<GroupInfo>> GetGroupsAsync(string domain, string name = null)
@@ -42,7 +42,7 @@ namespace Pug.Groups
 
 			CheckAuthorization( domain, SecurityOperations.List, SecurityObjectTypes.Group);
 
-			return getGroupsAsync(domain, name);
+			return _GetGroupsAsync(domain, name);
 		}
 
 		public Task<IGroup> GetGroupAsync(string identifier)
@@ -50,14 +50,14 @@ namespace Pug.Groups
 			if(string.IsNullOrWhiteSpace(identifier))
 				throw new ArgumentException("Value cannot be null or whitespace.", nameof(identifier));
 
-			return getGroupAsync(identifier);
+			return _GetGroupAsync(identifier);
 		}
 
 		public Task DeleteGroup(string identifier)
 		{
 			if(string.IsNullOrWhiteSpace(identifier)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(identifier));
 
-			IGroup grp = new Group(identifier, _applicationDataProvider, _securityManager);
+			IGroup grp = new Group(identifier, ApplicationDataProvider, SecurityManager);
 			GroupInfo info = grp.GetInfo();
 
 			if(info == null)
@@ -65,7 +65,7 @@ namespace Pug.Groups
 			
 			CheckAuthorization( info.Domain, SecurityOperations.Delete, SecurityObjectTypes.Group, identifier);
 
-			return deleteGroupAsync(identifier);
+			return _DeleteGroupAsync(identifier);
 		}
 
 		public Task<IEnumerable<DirectMembership>> GetMemberships(string domain, Subject subject,
@@ -79,7 +79,7 @@ namespace Pug.Groups
 			
 			CheckAuthorization( domain, SecurityOperations.ListMemberships, SecurityObjectTypes.Subject);
 
-			return getMemberships(domain, subject, recursive);
+			return _GetMemberships(domain, subject, recursive);
 		}
 
 		public Task AddToGroupsAsync(Subject subject, IEnumerable<string> groups)
@@ -93,7 +93,7 @@ namespace Pug.Groups
 
 			foreach(string group in groups)
 			{
-				IGroup grp = new Group(group, _applicationDataProvider, _securityManager);
+				IGroup grp = new Group(group, ApplicationDataProvider, SecurityManager);
 				GroupInfo info = grp.GetInfo();
 
 				if(info == null)
@@ -102,7 +102,7 @@ namespace Pug.Groups
 				CheckAuthorization( info.Domain, SecurityOperations.CreateMembership, SecurityObjectTypes.Group, group);
 			}
 
-			return addToGroupsAsync(subject, groups);
+			return _AddToGroupsAsync(subject, groups);
 		}
 	}
 }
