@@ -27,12 +27,12 @@ namespace Pug.Groups.Common
 			
 			IEnumerable<DirectMembership> memberships = dataSession.GetMemberships(subject, null);
 			
-			foreach(DirectMembership membership in memberships)
+			foreach(string group in memberships.Select(x => x.Group))
 			{
-				if(evaluatedGroups.Contains(membership.Group))
+				if(evaluatedGroups.Contains(group))
 					continue;
 				
-				GroupInfo groupInfo = dataSession.GetGroupInfo(membership.Group);
+				GroupInfo groupInfo = dataSession.GetGroupInfo(group);
 
 				if(groupInfo.Domain == domain)
 				{
@@ -101,15 +101,15 @@ namespace Pug.Groups.Common
 			IEnumerable<DirectMembership> groupMembers =
 				memberships.Where(x => x.Subject.Type == SubjectTypes.GROUP);
 
-			foreach(var groupMember in groupMembers)
+			foreach(Subject member in groupMembers.Select(x => x.Subject))
 			{
-				if(inspectedMemberGroups.Contains(groupMember.Subject.Identifier))
+				if(inspectedMemberGroups.Contains(member.Identifier))
 					continue;
 				
 				// prevent current group from being inspected again in recursive inspection
-				inspectedMemberGroups.Add(groupMember.Subject.Identifier);
+				inspectedMemberGroups.Add(member.Identifier);
 
-				if(await GroupHasMemberAsync(groupMember.Subject.Identifier, subject, recursive, dataSession,
+				if(await GroupHasMemberAsync(member.Identifier, subject, recursive, dataSession,
 										inspectedMemberGroups).ConfigureAwait(false))
 					return true;
 			}
@@ -137,15 +137,15 @@ namespace Pug.Groups.Common
 			IEnumerable<DirectMembership> groupMembers =
 				memberships.Where(x => x.Subject.Type == SubjectTypes.GROUP);
 
-			foreach(var groupMember in groupMembers)
+			foreach(Subject member in groupMembers.Select(x => x.Subject))
 			{
-				if(inspectedMemberGroups.Contains(groupMember.Subject.Identifier))
+				if(inspectedMemberGroups.Contains(member.Identifier))
 					continue;
 				
 				// prevent current group from being inspected again in recursive inspection
-				inspectedMemberGroups.Add(groupMember.Subject.Identifier);
+				inspectedMemberGroups.Add(member.Identifier);
 
-				if(GroupHasMember(groupMember.Subject.Identifier, subject, recursive, dataSession,
+				if(GroupHasMember(member.Identifier, subject, recursive, dataSession,
 							inspectedMemberGroups))
 					return true;
 			}
