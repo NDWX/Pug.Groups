@@ -9,7 +9,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Pug.Groups.Models\Pug.Groups.Models.csproj" />
+	  <ProjectReference Include="..\Pug.Groups.Models\Pug.Groups.Models.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

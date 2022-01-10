@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Pug.Groups.Models;
@@ -7,6 +8,16 @@ namespace Pug.Groups.Common
 {
 	internal static class Helpers
 	{
+		internal static void ValidateParameter(Subject subject, string paramName)
+		{
+			if(!SubjectTypes.Contains(subject.Type))
+				throw new ArgumentOutOfRangeException(paramName, subject.Type,
+													$"Subject type '{subject.Type}' is not valid.");
+
+			if(string.IsNullOrEmpty(subject.Identifier))
+				throw new ArgumentException("Subject identifier must be specified", paramName);
+		}
+		
 		internal static ICollection<string> GetMemberships(Subject subject, string domain, IDataSession dataSession, List<string> evaluatedGroups = null)
 		{
 			if(evaluatedGroups == null)
@@ -37,8 +48,39 @@ namespace Pug.Groups.Common
 
 			return roles;
 		}
+		
+		internal static async Task<ICollection<DirectMembership>> GetMembershipsAsync(Subject subject, string domain, IDataSession dataSession, List<string> evaluatedGroups = null)
+		{
+			if(evaluatedGroups == null)
+				evaluatedGroups = new List<string>();
+			
+			List<DirectMembership> roles = new List<DirectMembership>();
+			
+			IEnumerable<DirectMembership> memberships = await  dataSession.GetMembershipsAsync(subject, null);
+			
+			foreach(DirectMembership membership in memberships)
+			{
+				if(evaluatedGroups.Contains(membership.Group))
+					continue;
+				
+				GroupInfo groupInfo = await dataSession.GetGroupInfoAsync(membership.Group);
 
-		internal static async Task<bool> HasMemberAsync(string groupIdentifier, Subject subject, bool recursive, IDataSession dataSession, List<string> inspectedMemberGroups = null)
+				if(groupInfo.Domain == domain)
+				{
+					roles.Add(membership);
+				}
+				
+				evaluatedGroups.Add(groupInfo.Identifier);
+				
+				roles.AddRange(
+						await GetMembershipsAsync(new Subject() {Type = SubjectTypes.GROUP, Identifier = groupInfo.Identifier}, domain, dataSession, evaluatedGroups)
+					);
+			}
+
+			return roles;
+		}
+
+		internal static async Task<bool> GroupHasMemberAsync(string groupIdentifier, Subject subject, bool recursive, IDataSession dataSession, List<string> inspectedMemberGroups = null)
 		{
 			IEnumerable<DirectMembership> memberships = 
 				await dataSession.GetMembershipsAsync(groupIdentifier)
@@ -67,7 +109,7 @@ namespace Pug.Groups.Common
 				// prevent current group from being inspected again in recursive inspection
 				inspectedMemberGroups.Add(groupMember.Subject.Identifier);
 
-				if(await HasMemberAsync(groupMember.Subject.Identifier, subject, recursive, dataSession,
+				if(await GroupHasMemberAsync(groupMember.Subject.Identifier, subject, recursive, dataSession,
 										inspectedMemberGroups).ConfigureAwait(false))
 					return true;
 			}
@@ -110,5 +152,6 @@ namespace Pug.Groups.Common
 
 			return false;
 		}
+		
 	}
 }

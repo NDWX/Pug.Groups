@@ -6,19 +6,16 @@ namespace Pug.Groups.Common
 {
 	public interface IGroups
 	{
-		Task<IEnumerable<GroupInfo>> GetGroupsAsync(string domain, Subject subject = null, bool recursive = false);
-
-		Task AddToGroupsAsync(Subject subject, string domain, IEnumerable<string> groups);
-
-		Task<bool> SubjectIsMemberAsync(Subject subject, string domain, string group);
-	}
-
-	public interface IGroup
-	{
-		Task<GroupInfo> GetInfoAsync();
+		Task<string> AddGroupAsync(string domain, string name, string description);
 		
-		Task<bool> HasMemberAsync(Subject subject, bool recursive = false);
+		Task<IEnumerable<GroupInfo>> GetGroupsAsync(string domain, string name = null);
 
-		Task AddMembersAsync(IEnumerable<Subject> subject);
+		Task<IGroup> GetGroupAsync(string identifier);
+		
+		Task DeleteGroup(string identifier);
+		
+		Task<IEnumerable<DirectMembership>> GetMemberships(string domain, Subject subject, bool recursive = false);
+
+		Task AddToGroupsAsync(Subject subject, IEnumerable<string> groups);
 	}
 }

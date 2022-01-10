@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pug.Groups.Common", "src\Pu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pug.Groups", "src\Pug.Groups\Pug.Groups.csproj", "{9B74028C-405D-4691-90BF-E2D1905B202E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pug.Groups.Models", "Pug.Groups.Models\Pug.Groups.Models.csproj", "{AAA8949B-68FF-4DDB-96A9-9D81481D9D88}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pug.Groups.Models", "src\Pug.Groups.Models\Pug.Groups.Models.csproj", "{AAA8949B-68FF-4DDB-96A9-9D81481D9D88}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

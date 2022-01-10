@@ -2,66 +2,107 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Pug.Application;
 using Pug.Application.Data;
 using Pug.Application.Security;
-using Pug.Application.ServiceModel;
-using Pug.Authorized;
+using Pug.Groups.Common;
 using Pug.Groups.Models;
 
-namespace Pug.Groups.Common
+namespace Pug.Groups
 {
-	public class Options
+	public partial class Groups : IGroups
 	{
-		public string AdministratorUser { get; set; }
-		
-		public string AdministratorGroup { get; set; }
-	}
-
-	public class Groups : IGroups
-	{
-		private readonly IdentifierGenerator _identifierGenerator;
-		private readonly ISessionUserIdentityAccessor _sessionUserIdentityAccessor;
-		private readonly IApplicationData<IDataSession> _applicationDataProvider;
-		private readonly IAuthorized _authorized;
-
-		public Groups(Options options, IdentifierGenerator identifierGenerator,
-					ISessionUserIdentityAccessor sessionUserIdentityAccessor,
+		public Groups(IdentifierGenerator identifierGenerator,
 					IApplicationData<IDataSession> applicationDataProvider,
-					IApplicationData<Authorized.Data.IAuthorizedDataStore> authorizationDataStore)
+					ISecurityManager securityManager
+		)
+			: base(applicationDataProvider, securityManager)
 		{
 			_identifierGenerator = identifierGenerator ?? throw new ArgumentNullException(nameof(identifierGenerator));
-			_sessionUserIdentityAccessor = sessionUserIdentityAccessor ?? throw new ArgumentNullException(nameof(sessionUserIdentityAccessor));
-			_applicationDataProvider = applicationDataProvider ?? throw new ArgumentNullException(nameof(applicationDataProvider));
 
-			_authorized = new Authorized.Authorized(
-					new Authorized.Options()
-					{
-						AdministrativeUser = options.AdministratorUser,
-						AdministratorRole = options.AdministratorGroup,
-						AdministrativeActionGrantees = AdministrativeActionGrantees.Administrators |
-														AdministrativeActionGrantees.AllowedUsers
-					}, 
-					new DefaultIdentifierGenerator(), 
-					sessionUserIdentityAccessor, 
-					new InternalUserRoleProvider(_applicationDataProvider), 
-					authorizationDataStore
-				);
-		}
-		
-		public async Task<IEnumerable<GroupInfo>> GetGroupsAsync(string domain, Subject subject = null, bool recursive = false)
-		{
-			throw new System.NotImplementedException();
 		}
 
-		public async Task AddToGroupsAsync(Subject subject, string domain, IEnumerable<string> groups)
+		public Task<string> AddGroupAsync(string domain, string name, string description)
 		{
-			throw new System.NotImplementedException();
+			if(domain == null) throw new ArgumentNullException(nameof(domain));
+			if(string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+
+			CheckAuthorization( domain, SecurityOperations.Create, SecurityObjectTypes.Group);
+			
+			string identifier = _identifierGenerator.GetNext();
+			
+			GroupInfo groupInfo = new GroupInfo()
+				{ Identifier = identifier, Domain = domain, Description = description ?? string.Empty, Name = name };
+			
+			return addGroupAsync(groupInfo);
 		}
 
-		public async Task<bool> SubjectIsMemberAsync(Subject subject, string domain, string @group)
+		public Task<IEnumerable<GroupInfo>> GetGroupsAsync(string domain, string name = null)
 		{
-			throw new System.NotImplementedException();
+			if(domain == null) throw new ArgumentNullException(nameof(domain));
+
+			CheckAuthorization( domain, SecurityOperations.List, SecurityObjectTypes.Group);
+
+			return getGroupsAsync(domain, name);
+		}
+
+		public Task<IGroup> GetGroupAsync(string identifier)
+		{
+			if(string.IsNullOrWhiteSpace(identifier))
+				throw new ArgumentException("Value cannot be null or whitespace.", nameof(identifier));
+
+			return getGroupAsync(identifier);
+		}
+
+		public Task DeleteGroup(string identifier)
+		{
+			if(string.IsNullOrWhiteSpace(identifier)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(identifier));
+
+			IGroup grp = new Group(identifier, _applicationDataProvider, _securityManager);
+			GroupInfo info = grp.GetInfo();
+
+			if(info == null)
+				return Task.CompletedTask;
+			
+			CheckAuthorization( info.Domain, SecurityOperations.Delete, SecurityObjectTypes.Group, identifier);
+
+			return deleteGroupAsync(identifier);
+		}
+
+		public Task<IEnumerable<DirectMembership>> GetMemberships(string domain, Subject subject,
+																		bool recursive = false)
+		{
+			if(domain == null) throw new ArgumentNullException(nameof(domain));
+			if(subject == null) throw new ArgumentNullException(nameof(subject));
+
+			if(string.IsNullOrWhiteSpace(subject.Type) || string.IsNullOrWhiteSpace(subject.Identifier))
+				throw new ArgumentException("Subject type and identifier must be specified", nameof(subject));
+			
+			CheckAuthorization( domain, SecurityOperations.ListMemberships, SecurityObjectTypes.Subject);
+
+			return getMemberships(domain, subject, recursive);
+		}
+
+		public Task AddToGroupsAsync(Subject subject, IEnumerable<string> groups)
+		{
+			if(subject == null) throw new ArgumentNullException(nameof(subject));
+			
+			Helpers.ValidateParameter(subject, nameof(subject));
+
+			if(groups == null || !groups.Any())
+				return Task.CompletedTask;
+
+			foreach(string group in groups)
+			{
+				IGroup grp = new Group(group, _applicationDataProvider, _securityManager);
+				GroupInfo info = grp.GetInfo();
+
+				if(info == null)
+					throw new UnknownGroupException(group);
+
+				CheckAuthorization( info.Domain, SecurityOperations.CreateMembership, SecurityObjectTypes.Group, group);
+			}
+
+			return addToGroupsAsync(subject, groups);
 		}
 	}
 }
