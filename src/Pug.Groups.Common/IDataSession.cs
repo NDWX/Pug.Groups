@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Pug.Groups.Models;
 
@@ -13,19 +12,21 @@ namespace Pug.Groups.Common
 
 		Task<IEnumerable<GroupInfo>> GetGroupsAsync(string domain, string name);
 		
+		Task<GroupInfo> GetGroupDefinitionAsync(string identifier);
+		
 		Task<GroupInfo> GetGroupInfoAsync(string identifier);
 		
 		GroupInfo GetGroupInfo(string identifier);
 		
-		Task<IEnumerable<DirectMembership>> GetMembershipsAsync(string identifier);
+		Task<IEnumerable<Membership>> GetMembershipsAsync(string identifier);
 		
-		IEnumerable<DirectMembership> GetMemberships(string identifier);
+		IEnumerable<Membership> GetMemberships(string identifier);
 
-		Task<IEnumerable<DirectMembership>> GetMembershipsAsync(Subject subject, string domain = null);
+		Task<IEnumerable<Membership>> GetMembershipsAsync(Subject subject, string domain = null);
 
-		IEnumerable<DirectMembership> GetMemberships(Subject subject, string domain = null);
+		IEnumerable<Membership> GetMemberships(Subject subject, string domain = null);
 
-		Task InsertAsync(DirectMembership directMembership);
+		Task InsertAsync(Membership membership);
 
 		Task DeleteAsync(string group, Subject subject);
 

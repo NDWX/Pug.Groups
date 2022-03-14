@@ -13,6 +13,21 @@ namespace Pug.Groups
 	{
 		private readonly string _domain;
 		
+		private async Task<GroupInfo> _GetDefinitionAsync()
+		{
+			GroupInfo info = await ApplicationDataProvider.ExecuteAsync(
+									async (dataSession, context) =>
+									{
+										return await dataSession.GetGroupDefinitionAsync(context.@this.Identifier)
+																.ConfigureAwait(false);
+									},
+									context: new { @this = this },
+									TransactionScopeOption.Required,
+									new TransactionOptions() { IsolationLevel = IsolationLevel.ReadCommitted }
+								).ConfigureAwait(false);
+			return info;
+		}
+		
 		private async Task<GroupInfo> _GetInfoAsync()
 		{
 			GroupInfo info = await ApplicationDataProvider.ExecuteAsync(
@@ -51,9 +66,9 @@ namespace Pug.Groups
 							if(subject == null)
 								continue;
 
-							DirectMembership membership = new DirectMembership()
+							Membership membership = new Membership()
 							{
-								Assignor = SecurityManager.CurrentUser.Identity.Identifier,
+								Assignor = context.@this.SecurityManager.CurrentUser.Identity.Identifier,
 								Subject = subject,
 								Group = context.@this.Identifier,
 								AssignmentTimestamp = DateTime.Now
@@ -93,7 +108,7 @@ namespace Pug.Groups
 				).ConfigureAwait(false);
 		}
 
-		private async Task<IEnumerable<DirectMembership>> _GetMembershipsAsync()
+		private async Task<IEnumerable<Membership>> _GetMembershipsAsync()
 		{
 			return await ApplicationDataProvider.ExecuteAsync(
 							async (dataSession, context) =>

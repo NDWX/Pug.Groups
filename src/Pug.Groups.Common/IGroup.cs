@@ -12,7 +12,7 @@ namespace Pug.Groups.Common
 		
 		GroupInfo GetInfo();
 
-		Task<IEnumerable<DirectMembership>> GetMembershipsAsync();
+		Task<IEnumerable<Membership>> GetMembershipsAsync();
 		
 		Task<bool> HasMemberAsync(Subject subject, bool recursive = false);
 

@@ -1,14 +1,14 @@
-﻿namespace Pug.Groups.Models
+﻿using System.Runtime.Serialization;
+
+namespace Pug.Groups.Models
 {
-	public class GroupInfo
+	[DataContract]
+	public record GroupInfo
 	{
+		[DataMember(IsRequired = true)]
 		public string Identifier { get; set; }
-		
-		public string Domain { get; set; }
-		
-		public string Name { get; set; }
-		
-		public string Description { get; set; }
-			
+
+		[DataMember(IsRequired = true)]
+		public GroupDefinition Definition { get; set;  }
 	}
 }

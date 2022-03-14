@@ -25,7 +25,7 @@ namespace Pug.Groups.Common
 			
 			List<string> roles = new List<string>();
 			
-			IEnumerable<DirectMembership> memberships = dataSession.GetMemberships(subject, null);
+			IEnumerable<Membership> memberships = dataSession.GetMemberships(subject);
 			
 			foreach(string group in memberships.Select(x => x.Group))
 			{
@@ -34,7 +34,7 @@ namespace Pug.Groups.Common
 				
 				GroupInfo groupInfo = dataSession.GetGroupInfo(group);
 
-				if(groupInfo.Domain == domain)
+				if(groupInfo.Definition.Domain == domain)
 				{
 					roles.Add(groupInfo.Identifier);
 				}
@@ -49,23 +49,23 @@ namespace Pug.Groups.Common
 			return roles;
 		}
 		
-		internal static async Task<ICollection<DirectMembership>> GetMembershipsAsync(Subject subject, string domain, IDataSession dataSession, List<string> evaluatedGroups = null)
+		internal static async Task<ICollection<Membership>> GetMembershipsAsync(Subject subject, string domain, IDataSession dataSession, List<string> evaluatedGroups = null)
 		{
 			if(evaluatedGroups == null)
 				evaluatedGroups = new List<string>();
 			
-			List<DirectMembership> roles = new List<DirectMembership>();
+			List<Membership> roles = new List<Membership>();
 			
-			IEnumerable<DirectMembership> memberships = await  dataSession.GetMembershipsAsync(subject, null);
+			IEnumerable<Membership> memberships = await  dataSession.GetMembershipsAsync(subject);
 			
-			foreach(DirectMembership membership in memberships)
+			foreach(Membership membership in memberships)
 			{
 				if(evaluatedGroups.Contains(membership.Group))
 					continue;
 				
 				GroupInfo groupInfo = await dataSession.GetGroupInfoAsync(membership.Group);
 
-				if(groupInfo.Domain == domain)
+				if(groupInfo.Definition.Domain == domain)
 				{
 					roles.Add(membership);
 				}
@@ -82,11 +82,11 @@ namespace Pug.Groups.Common
 
 		internal static async Task<bool> GroupHasMemberAsync(string groupIdentifier, Subject subject, bool recursive, IDataSession dataSession, List<string> inspectedMemberGroups = null)
 		{
-			IEnumerable<DirectMembership> memberships = 
+			IEnumerable<Membership> memberships = 
 				await dataSession.GetMembershipsAsync(groupIdentifier)
 								.ConfigureAwait(false);
 
-			DirectMembership subjectMembership =
+			Membership subjectMembership =
 				memberships.FirstOrDefault(x => x.Subject == subject);
 
 			if(subjectMembership != null)
@@ -98,7 +98,7 @@ namespace Pug.Groups.Common
 			if(inspectedMemberGroups == null)
 				inspectedMemberGroups = new List<string>();
 
-			IEnumerable<DirectMembership> groupMembers =
+			IEnumerable<Membership> groupMembers =
 				memberships.Where(x => x.Subject.Type == SubjectTypes.GROUP);
 
 			foreach(Subject member in groupMembers.Select(x => x.Subject))
@@ -119,10 +119,10 @@ namespace Pug.Groups.Common
 
 		internal static bool GroupHasMember(string groupIdentifier, Subject subject, bool recursive, IDataSession dataSession, List<string> inspectedMemberGroups = null)
 		{
-			IEnumerable<DirectMembership> memberships =
+			IEnumerable<Membership> memberships =
 				dataSession.GetMemberships(groupIdentifier);
 
-			DirectMembership subjectMembership =
+			Membership subjectMembership =
 				memberships.FirstOrDefault(x => x.Subject == subject);
 
 			if(subjectMembership != null)
@@ -134,7 +134,7 @@ namespace Pug.Groups.Common
 			if(inspectedMemberGroups == null)
 				inspectedMemberGroups = new List<string>();
 
-			IEnumerable<DirectMembership> groupMembers =
+			IEnumerable<Membership> groupMembers =
 				memberships.Where(x => x.Subject.Type == SubjectTypes.GROUP);
 
 			foreach(Subject member in groupMembers.Select(x => x.Subject))

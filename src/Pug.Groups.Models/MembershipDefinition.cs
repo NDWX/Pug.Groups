@@ -1,15 +1,14 @@
-using System;
 using System.Runtime.Serialization;
 
 namespace Pug.Groups.Models
 {
 	[DataContract]
-	public record Membership : MembershipDefinition
+	public record MembershipDefinition
 	{
 		[DataMember(IsRequired = true)]
-		public DateTime AssignmentTimestamp { get; set; }
+		public Subject Subject { get; set; }
 		
 		[DataMember(IsRequired = true)]
-		public string Assignor { get; set; }
+		public string Group { get; set; }
 	}
 }

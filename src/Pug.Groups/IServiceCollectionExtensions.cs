@@ -34,6 +34,8 @@ namespace Pug.Groups.Common
 			if(options == null) throw new ArgumentNullException(nameof(options));
 			
 			serviceCollection.AddSingleton(
+					// ReSharper disable once HeapView.ClosureAllocation
+					// ReSharper disable once HeapView.DelegateAllocation
 					provider =>
 					{
 						IApplicationData<IDataSession> applicationData = 

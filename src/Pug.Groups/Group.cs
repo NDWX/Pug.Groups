@@ -26,7 +26,14 @@ namespace Pug.Groups
 			if(info == null)
 				throw new UnknownGroupException(identifier);
 
-			_domain = info.Domain;
+			_domain = info.Definition.Domain;
+		}
+		
+		public Task<GroupInfo> GetDefinitionAsync()
+		{
+			CheckAuthorization(_domain, SecurityOperations.GetDefinition, SecurityObjectTypes.Group, Identifier);
+
+			return _GetDefinitionAsync();
 		}
 		
 		public Task<GroupInfo> GetInfoAsync()
@@ -43,7 +50,7 @@ namespace Pug.Groups
 			return _GetInfo();
 		}
 
-		public Task<IEnumerable<DirectMembership>> GetMembershipsAsync()
+		public Task<IEnumerable<Membership>> GetMembershipsAsync()
 		{
 			CheckAuthorization(_domain, SecurityOperations.ListMemberships, SecurityObjectTypes.Group, Identifier);
 			

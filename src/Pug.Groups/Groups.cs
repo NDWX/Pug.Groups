@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using Pug.Application.Data;
 using Pug.Application.Security;
 using Pug.Groups.Common;
@@ -11,98 +12,209 @@ namespace Pug.Groups
 {
 	public partial class Groups : IGroups
 	{
-		public Groups(IdentifierGenerator identifierGenerator,
-					IApplicationData<IDataSession> applicationDataProvider,
-					ISecurityManager securityManager
+		public Groups( IdentifierGenerator identifierGenerator,
+						IApplicationData<IDataSession> applicationDataProvider,
+						ISecurityManager securityManager
 		)
-			: base(applicationDataProvider, securityManager)
+			: base( applicationDataProvider, securityManager )
 		{
-			_identifierGenerator = identifierGenerator ?? throw new ArgumentNullException(nameof(identifierGenerator));
+			_identifierGenerator = identifierGenerator ?? throw new ArgumentNullException( nameof(identifierGenerator) );
 
 		}
 
-		public Task<string> AddGroupAsync(string domain, string name, string description)
+		private async Task<string> _AddGroupAsync( GroupInfo groupInfo )
 		{
-			if(domain == null) throw new ArgumentNullException(nameof(domain));
-			if(string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+			await CheckAuthorizationAsync( groupInfo.Definition.Domain, SecurityOperations.Create, SecurityObjectTypes.Group );
 
-			CheckAuthorization( domain, SecurityOperations.Create, SecurityObjectTypes.Group);
-			
+			return await ApplicationDataProvider.ExecuteAsync(
+							async ( session, context ) =>
+							{
+								await session.InsertAsync( context.groupInfo ).ConfigureAwait( false );
+
+								return context.groupInfo.Identifier;
+							},
+							context: new { groupInfo },
+							TransactionScopeOption.Required,
+							new TransactionOptions()
+							{
+								IsolationLevel = IsolationLevel.ReadCommitted
+							}
+						);
+		}
+
+		public Task<string> AddGroupAsync( GroupDefinition definition )
+		{
+			if( definition == null ) throw new ArgumentNullException( nameof(definition) );
+
 			string identifier = _identifierGenerator.GetNext();
-			
+
 			GroupInfo groupInfo = new GroupInfo()
-				{ Identifier = identifier, Domain = domain, Description = description ?? string.Empty, Name = name };
-			
-			return _AddGroupAsync(groupInfo);
+				{ Identifier = identifier, Definition = definition };
+
+			return _AddGroupAsync( groupInfo );
 		}
 
-		public Task<IEnumerable<GroupInfo>> GetGroupsAsync(string domain, string name = null)
+		private async Task<IEnumerable<GroupInfo>> _GetGroupsAsync( string domain, string name )
 		{
-			if(domain == null) throw new ArgumentNullException(nameof(domain));
-
-			CheckAuthorization( domain, SecurityOperations.List, SecurityObjectTypes.Group);
-
-			return _GetGroupsAsync(domain, name);
+			await CheckAuthorizationAsync( domain, SecurityOperations.List, SecurityObjectTypes.Group );
+			//_securityManager.CurrentUser.IsAuthorized()
+			return await ApplicationDataProvider.ExecuteAsync(
+							async ( session, context ) => { return await session.GetGroupsAsync( context.domain, context.name ); },
+							context: new { domain, name },
+							TransactionScopeOption.Required,
+							new TransactionOptions()
+							{
+								IsolationLevel = IsolationLevel.ReadCommitted
+							}
+						);
 		}
 
-		public Task<IGroup> GetGroupAsync(string identifier)
+		public Task<IEnumerable<GroupInfo>> GetGroupsAsync( string domain, string name = null )
 		{
-			if(string.IsNullOrWhiteSpace(identifier))
-				throw new ArgumentException("Value cannot be null or whitespace.", nameof(identifier));
+			if( domain == null ) throw new ArgumentNullException( nameof(domain) );
 
-			return _GetGroupAsync(identifier);
+			return _GetGroupsAsync( domain, name );
 		}
 
-		public Task DeleteGroup(string identifier)
+		private async Task<IGroup> _GetGroupAsync( string identifier )
 		{
-			if(string.IsNullOrWhiteSpace(identifier)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(identifier));
-
-			IGroup grp = new Group(identifier, ApplicationDataProvider, SecurityManager);
-			GroupInfo info = grp.GetInfo();
-
-			if(info == null)
-				return Task.CompletedTask;
-			
-			CheckAuthorization( info.Domain, SecurityOperations.Delete, SecurityObjectTypes.Group, identifier);
-
-			return _DeleteGroupAsync(identifier);
+			return await ApplicationDataProvider.ExecuteAsync(
+							function: async ( dataSession, context ) =>
+							{
+								return await _GetGroupAsync( dataSession, context.identifier, context.@this.ApplicationDataProvider,
+															context.@this.SecurityManager );
+							},
+							new { identifier, @this = this },
+							TransactionScopeOption.Required,
+							new TransactionOptions()
+							{
+								IsolationLevel = IsolationLevel.ReadCommitted
+							}
+						).ConfigureAwait( false );
 		}
 
-		public Task<IEnumerable<DirectMembership>> GetMemberships(string domain, Subject subject,
-																		bool recursive = false)
+		public Task<IGroup> GetGroupAsync( string identifier )
 		{
-			if(domain == null) throw new ArgumentNullException(nameof(domain));
-			if(subject == null) throw new ArgumentNullException(nameof(subject));
+			if( string.IsNullOrWhiteSpace( identifier ) )
+				throw new ArgumentException( "Value cannot be null or whitespace.", nameof(identifier) );
 
-			if(string.IsNullOrWhiteSpace(subject.Type) || string.IsNullOrWhiteSpace(subject.Identifier))
-				throw new ArgumentException("Subject type and identifier must be specified", nameof(subject));
-			
-			CheckAuthorization( domain, SecurityOperations.ListMemberships, SecurityObjectTypes.Subject);
-
-			return _GetMemberships(domain, subject, recursive);
+			return _GetGroupAsync( identifier );
 		}
 
-		public Task AddToGroupsAsync(Subject subject, IEnumerable<string> groups)
+		private async Task _DeleteGroupAsync( string identifier )
 		{
-			if(subject == null) throw new ArgumentNullException(nameof(subject));
-			
-			Helpers.ValidateParameter(subject, nameof(subject));
+			IGroup grp = new Group( identifier, ApplicationDataProvider, SecurityManager );
+			GroupInfo info = await grp.GetInfoAsync();
 
-			if(groups == null || !groups.Any())
-				return Task.CompletedTask;
+			if( info == null )
+				return;
 
-			foreach(string group in groups)
+			await CheckAuthorizationAsync( info.Definition.Domain, SecurityOperations.Delete, SecurityObjectTypes.Group, identifier );
+
+			await ApplicationDataProvider.PerformAsync(
+					async ( session, context ) => { await session.DeleteAsync( context.identifier ).ConfigureAwait( false ); },
+					context: new { identifier },
+					TransactionScopeOption.Required,
+					new TransactionOptions()
+					{
+						IsolationLevel = IsolationLevel.ReadCommitted
+					}
+				);
+		}
+
+		public Task DeleteGroupAsync( string identifier )
+		{
+			if( string.IsNullOrWhiteSpace( identifier ) ) throw new ArgumentException( "Value cannot be null or whitespace.", nameof(identifier) );
+
+			return _DeleteGroupAsync( identifier );
+		}
+
+		private async Task<IEnumerable<Membership>> _GetMemberships( string domain, Subject subject,
+																			bool recursive = false )
+		{
+
+			await CheckAuthorizationAsync( domain, SecurityOperations.ListMemberships, SecurityObjectTypes.Subject );
+
+			return await ApplicationDataProvider.ExecuteAsync(
+							async ( session, context ) =>
+							{
+								if( !context.recursive )
+									return await session.GetMembershipsAsync( context.subject, context.domain );
+
+								return await Helpers.GetMembershipsAsync( context.subject, context.domain, session );
+							},
+							context: new { domain, subject, recursive },
+							TransactionScopeOption.Required,
+							new TransactionOptions()
+							{
+								IsolationLevel = IsolationLevel.ReadCommitted
+							}
+
+						);
+		}
+
+		public Task<IEnumerable<Membership>> GetMemberships( string domain, Subject subject,
+																	bool recursive = false )
+		{
+			if( domain == null ) throw new ArgumentNullException( nameof(domain) );
+			if( subject == null ) throw new ArgumentNullException( nameof(subject) );
+
+			if( string.IsNullOrWhiteSpace( subject.Type ) || string.IsNullOrWhiteSpace( subject.Identifier ) )
+				throw new ArgumentException( "Subject type and identifier must be specified", nameof(subject) );
+
+			return _GetMemberships( domain, subject, recursive );
+		}
+
+		private async Task _AddToGroupsAsync( Subject subject, IEnumerable<string> groups )
+		{
+			foreach( string group in groups )
 			{
-				IGroup grp = new Group(group, ApplicationDataProvider, SecurityManager);
-				GroupInfo info = grp.GetInfo();
+				IGroup grp = new Group( group, ApplicationDataProvider, SecurityManager );
+				GroupInfo info = await grp.GetInfoAsync();
 
-				if(info == null)
-					throw new UnknownGroupException(group);
+				if( info == null )
+					throw new UnknownGroupException( group );
 
-				CheckAuthorization( info.Domain, SecurityOperations.CreateMembership, SecurityObjectTypes.Group, group);
+				await CheckAuthorizationAsync( info.Definition.Domain, SecurityOperations.CreateMembership, SecurityObjectTypes.Group, group );
 			}
 
-			return _AddToGroupsAsync(subject, groups);
+			await ApplicationDataProvider.PerformAsync(
+					action: async ( dataSession, context ) =>
+					{
+						foreach( string group in context.groups )
+						{
+							if( await dataSession.GetGroupInfoAsync( group ) == null )
+								throw new UnknownGroupException( group );
+						}
+
+						foreach( string group in context.groups )
+						{
+							Group grp = await _GetGroupAsync( dataSession, @group, context.@this.ApplicationDataProvider,
+															context.@this.SecurityManager ) as Group;
+
+							// ReSharper disable once PossibleNullReferenceException
+							await grp._AddMembersAsync( new[] { context.subject } );
+						}
+					},
+					new { @this = this, subject, groups },
+					TransactionScopeOption.Required,
+					new TransactionOptions()
+					{
+						IsolationLevel = IsolationLevel.ReadCommitted
+					}
+				);
+		}
+
+		public Task AddToGroupsAsync( Subject subject, IEnumerable<string> groups )
+		{
+			if( subject == null ) throw new ArgumentNullException( nameof(subject) );
+
+			Helpers.ValidateParameter( subject, nameof(subject) );
+
+			if( groups == null || !groups.Any() )
+				return Task.CompletedTask;
+
+			return _AddToGroupsAsync( subject, groups );
 		}
 	}
 }

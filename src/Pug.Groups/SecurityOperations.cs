@@ -8,6 +8,8 @@
 
 		public static string GetInfo => "GET_INFO";
 
+		public static string GetDefinition => "GET_DEFINITION";
+
 		public static string Delete => "DELETE";
 
 		public static string ListMemberships => "LIST_MEMBERSHIPS";
