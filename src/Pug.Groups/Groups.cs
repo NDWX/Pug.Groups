@@ -57,7 +57,7 @@ namespace Pug.Groups
 		private async Task<IEnumerable<GroupInfo>> _GetGroupsAsync( string domain, string name )
 		{
 			await CheckAuthorizationAsync( domain, SecurityOperations.List, SecurityObjectTypes.Group );
-			//_securityManager.CurrentUser.IsAuthorized()
+			
 			return await ApplicationDataProvider.ExecuteAsync(
 							async ( session, context ) => { return await session.GetGroupsAsync( context.domain, context.name ); },
 							context: new { domain, name },

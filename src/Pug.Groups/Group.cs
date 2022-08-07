@@ -29,18 +29,18 @@ namespace Pug.Groups
 			_domain = info.Definition.Domain;
 		}
 		
-		public Task<GroupInfo> GetDefinitionAsync()
+		public async Task<GroupInfo> GetDefinitionAsync()
 		{
-			CheckAuthorization(_domain, SecurityOperations.GetDefinition, SecurityObjectTypes.Group, Identifier);
+			await CheckAuthorizationAsync(_domain, SecurityOperations.GetDefinition, SecurityObjectTypes.Group, Identifier);
 
-			return _GetDefinitionAsync();
+			return await _GetDefinitionAsync();
 		}
 		
-		public Task<GroupInfo> GetInfoAsync()
+		public async Task<GroupInfo> GetInfoAsync()
 		{
-			CheckAuthorization(_domain, SecurityOperations.GetInfo, SecurityObjectTypes.Group, Identifier);
+			await CheckAuthorizationAsync(_domain, SecurityOperations.GetInfo, SecurityObjectTypes.Group, Identifier);
 			
-			return _GetInfoAsync();
+			return await _GetInfoAsync();
 		}
 
 		public GroupInfo GetInfo()
@@ -50,26 +50,26 @@ namespace Pug.Groups
 			return _GetInfo();
 		}
 
-		public Task<IEnumerable<Membership>> GetMembershipsAsync()
+		public async Task<IEnumerable<Membership>> GetMembershipsAsync()
 		{
-			CheckAuthorization(_domain, SecurityOperations.ListMemberships, SecurityObjectTypes.Group, Identifier);
+			await CheckAuthorizationAsync(_domain, SecurityOperations.ListMemberships, SecurityObjectTypes.Group, Identifier);
 			
-			return _GetMembershipsAsync();
+			return await _GetMembershipsAsync();
 		}
 
-		public Task<bool> HasMemberAsync(Subject subject, bool recursive = false)
+		public async Task<bool> HasMemberAsync(Subject subject, bool recursive = false)
 		{
 			Helpers.ValidateParameter(subject, nameof(subject));
 			
-			CheckAuthorization(_domain, SecurityOperations.ListMemberships, SecurityObjectTypes.Group, Identifier);
+			await CheckAuthorizationAsync(_domain, SecurityOperations.ListMemberships, SecurityObjectTypes.Group, Identifier);
 			
-			return _HasMemberAsync(subject, recursive);
+			return await _HasMemberAsync(subject, recursive);
 		}
 
-		public Task AddMembersAsync(IEnumerable<Subject> subjects)
+		public async Task AddMembersAsync(IEnumerable<Subject> subjects)
 		{
-			if(subjects == null || !subjects.Any())
-				return Task.CompletedTask;
+			if( subjects == null || !subjects.Any() )
+				return;
 
 			foreach(Subject subject in subjects)
 			{
@@ -79,20 +79,20 @@ namespace Pug.Groups
 				Helpers.ValidateParameter(subject, nameof(subjects));
 			}
 			
-			CheckAuthorization(_domain, SecurityOperations.CreateMembership, SecurityObjectTypes.Group, Identifier);
+			await CheckAuthorizationAsync(_domain, SecurityOperations.CreateMembership, SecurityObjectTypes.Group, Identifier);
 
-			return _AddMembersAsync(subjects);
+			await _AddMembersAsync(subjects);
 		}
 
-		public Task RemoveMemberAsync(Subject subject)
+		public async Task RemoveMemberAsync(Subject subject)
 		{
 			if(subject == null) throw new ArgumentNullException(nameof(subject));
 			
 			Helpers.ValidateParameter(subject, nameof(subject));
 			
-			CheckAuthorization(_domain, SecurityOperations.DeleteMembership, SecurityObjectTypes.Group, Identifier);
+			await CheckAuthorizationAsync(_domain, SecurityOperations.DeleteMembership, SecurityObjectTypes.Group, Identifier);
 
-			return _RemoveMemberAsync(subject);
+			await _RemoveMemberAsync(subject);
 		}
 	}
 }

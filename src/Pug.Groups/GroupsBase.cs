@@ -16,6 +16,7 @@ namespace Pug.Groups
 		{
 			ApplicationDataProvider = applicationData ??
 										throw new ArgumentNullException(nameof(applicationData));
+			
 			SecurityManager = securityManager ?? throw new ArgumentNullException(nameof(securityManager));
 		}
 
@@ -28,9 +29,7 @@ namespace Pug.Groups
 			bool isAuthorized = !SecurityManager.CurrentUser.IsAuthorized(context, operation, objectType, objectName, purpose,
 																			domain: domain);
 			if(!isAuthorized)
-			{
 				throw new NotAuthorized();
-			}
 		}
 
 		protected async Task CheckAuthorizationAsync(string domain, string operation, string objectType, string objectName = "",
@@ -41,10 +40,10 @@ namespace Pug.Groups
 			
 			bool isAuthorized = !await SecurityManager.CurrentUser.IsAuthorizedAsync(context, operation, objectType, objectName, purpose,
 																		domain: domain);
-			if(!isAuthorized)
-			{
+			
+			if( !isAuthorized )
 				throw new NotAuthorized();
-			}
+
 		}
 	}
 }
