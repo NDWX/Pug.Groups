@@ -1,5 +1,5 @@
-using System;
 using System.Runtime.Serialization;
+using Pug.Effable;
 
 namespace Pug.Groups.Models
 {
@@ -7,9 +7,6 @@ namespace Pug.Groups.Models
 	public record Membership : MembershipDefinition
 	{
 		[DataMember(IsRequired = true)]
-		public DateTime AssignmentTimestamp { get; set; }
-		
-		[DataMember(IsRequired = true)]
-		public string Assignor { get; set; }
+		public ActionContext<string> RegistrationInfo { get; set; }
 	}
 }

@@ -2,8 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Transactions;
 using Pug.Application.Data;
+using Pug.Effable;
 using Pug.Groups.Common;
 using Pug.Groups.Models;
 
@@ -13,36 +13,17 @@ namespace Pug.Groups
 	{
 		private readonly string _domain;
 		
-		private async Task<GroupInfo> _GetDefinitionAsync()
+		private async Task<GroupDefinition> _GetDefinitionAsync()
 		{
-			GroupInfo info = await ApplicationDataProvider.ExecuteAsync(
-									async (dataSession, context) =>
+			return await ApplicationDataProvider.ExecuteAsync(
+									(dataSession, context) =>
 									{
-										return await dataSession.GetGroupDefinitionAsync(context.@this.Identifier)
-																.ConfigureAwait(false);
+										return dataSession.GetGroupDefinitionAsync( context.@this.Identifier );
 									},
-									context: new { @this = this },
-									TransactionScopeOption.Required,
-									new TransactionOptions() { IsolationLevel = IsolationLevel.ReadCommitted }
+									context: new { @this = this }
 								).ConfigureAwait(false);
-			return info;
 		}
-		
-		private async Task<GroupInfo> _GetInfoAsync()
-		{
-			GroupInfo info = await ApplicationDataProvider.ExecuteAsync(
-									async (dataSession, context) =>
-									{
-										return await dataSession.GetGroupInfoAsync(context.@this.Identifier)
-																.ConfigureAwait(false);
-									},
-									context: new { @this = this },
-									TransactionScopeOption.Required,
-									new TransactionOptions() { IsolationLevel = IsolationLevel.ReadCommitted }
-								).ConfigureAwait(false);
-			return info;
-		}
-		
+
 		private GroupInfo _GetInfo()
 		{
 			return ApplicationDataProvider.Execute(
@@ -50,9 +31,7 @@ namespace Pug.Groups
 									{
 										return dataSession.GetGroupInfo(context.@this.Identifier);
 									},
-									context: new { @this = this },
-									TransactionScopeOption.Required,
-									new TransactionOptions() { IsolationLevel = IsolationLevel.ReadCommitted }
+									context: new { @this = this }
 								);
 		}
 		
@@ -66,20 +45,21 @@ namespace Pug.Groups
 							if(subject == null)
 								continue;
 
-							Membership membership = new Membership()
+							Membership membership = new ()
 							{
-								Assignor = context.@this.SecurityManager.CurrentUser.Identity.Identifier,
 								Subject = subject,
 								Group = context.@this.Identifier,
-								AssignmentTimestamp = DateTime.Now
+								RegistrationInfo = new ActionContext<string>()
+								{
+									Timestamp = DateTime.Now,
+									User = context.@this.SecurityManager.CurrentUser.Identity.Identifier
+								}
 							};
 
 							await dataSession.InsertAsync(membership);
 						}
 					},
-					new { subjects, @this = this },
-					TransactionScopeOption.Required,
-					new TransactionOptions() { IsolationLevel = IsolationLevel.ReadCommitted }
+					new { subjects, @this = this }
 				).ConfigureAwait(false);
 
 		}
@@ -92,19 +72,17 @@ namespace Pug.Groups
 								return await Helpers.GroupHasMemberAsync(context.@this.Identifier, context.subject,
 																		context.recursive, dataSession).ConfigureAwait(false);
 							},
-							context: new {@this = this, subject, recursive},
-							TransactionScopeOption.Required,
-							new TransactionOptions(){IsolationLevel = IsolationLevel.ReadCommitted}
+							context: new {@this = this, subject, recursive}
 						).ConfigureAwait(false);
 		}
 
-		private async Task _RemoveMemberAsync(Subject subject)
+		private async Task _RemoveMemberAsync( Subject subject )
 		{
+			await CheckAuthorizationAsync( _domain, SecurityOperations.DeleteMembership, SecurityObjectTypes.Group, Identifier );
+
 			await ApplicationDataProvider.PerformAsync(
 					action: async (dataSession, context) => { await dataSession.DeleteAsync(context.@this.Identifier, context.subject); },
-					new { subject, @this = this },
-					TransactionScopeOption.Required,
-					new TransactionOptions() { IsolationLevel = IsolationLevel.ReadCommitted }
+					new { subject, @this = this }
 				).ConfigureAwait(false);
 		}
 
@@ -116,9 +94,7 @@ namespace Pug.Groups
 								return await dataSession.GetMembershipsAsync(context.@this.Identifier)
 														.ConfigureAwait(false);
 							},
-							context: new {@this = this},
-							TransactionScopeOption.Required,
-							new TransactionOptions(){IsolationLevel = IsolationLevel.ReadCommitted}
+							context: new {@this = this}
 						).ConfigureAwait(false);
 		}
 	}

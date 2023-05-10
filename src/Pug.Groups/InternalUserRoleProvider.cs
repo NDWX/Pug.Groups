@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using System.Transactions;
 using Pug.Application.Data;
 using Pug.Application.Security;
 using Pug.Groups.Models;
@@ -27,9 +27,7 @@ namespace Pug.Groups.Common
 								{ Identifier = context.user, Type = Authorized.SubjectTypes.User },
 							true, dataSession);
 					},
-					new { user, role },
-					TransactionScopeOption.Required,
-					new TransactionOptions() { IsolationLevel = IsolationLevel.ReadCommitted }
+					new { user, role }
 				);
 		}
 
@@ -44,9 +42,7 @@ namespace Pug.Groups.Common
 								{ Identifier = context.user, Type = Authorized.SubjectTypes.User },
 							true, dataSession);
 					},
-					new { user, role },
-					TransactionScopeOption.Required,
-					new TransactionOptions() { IsolationLevel = IsolationLevel.ReadCommitted }
+					new { user, role }
 				);
 		}
 
@@ -67,9 +63,7 @@ namespace Pug.Groups.Common
 
 						return true;
 					},
-					new { user, roles },
-					TransactionScopeOption.Required,
-					new TransactionOptions() { IsolationLevel = IsolationLevel.ReadCommitted }
+					new { user, roles }
 				);
 		}
 
@@ -90,13 +84,11 @@ namespace Pug.Groups.Common
 
 						return true;
 					},
-					new { user, roles },
-					TransactionScopeOption.Required,
-					new TransactionOptions() { IsolationLevel = IsolationLevel.ReadCommitted }
+					new { user, roles }
 				);
 		}
 
-		public ICollection<string> GetUserRoles(string user, string domain)
+		public IEnumerable<string> GetUserRoles(string user, string domain)
 		{
 			return _applicationData.Execute(
 					(dataSession, context) =>
@@ -105,15 +97,24 @@ namespace Pug.Groups.Common
 							new Subject() { Identifier = context.user, Type = SubjectTypes.USER }, context.domain,
 							dataSession);
 					},
-					new { user, domain },
-					TransactionScopeOption.Required,
-					new TransactionOptions() { IsolationLevel = IsolationLevel.ReadCommitted }
+					new { user, domain }
 				);
 		}
 
-		public async Task<IEnumerable<string>> GetUserRolesAsync( string user, string domain )
+		public Task<IEnumerable<string>> GetUserRolesAsync( string user, string domain )
 		{
-			throw new System.NotImplementedException();
+			return _applicationData.ExecuteAsync(
+					async ( dataSession, context ) =>
+					{
+						return ( await
+									Helpers.GetMembershipsAsync(
+										new Subject() { Identifier = context.user, Type = SubjectTypes.USER }, context.domain,
+										dataSession )
+								).Select( x => x.Group )
+								.Distinct();
+					},
+					new { user, domain }
+				);
 		}
 	}
 }

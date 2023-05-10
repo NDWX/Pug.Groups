@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Transactions;
 using Pug.Application.Data;
 using Pug.Application.Security;
 using Pug.Groups.Common;
@@ -33,12 +32,7 @@ namespace Pug.Groups
 
 								return context.groupInfo.Identifier;
 							},
-							context: new { groupInfo },
-							TransactionScopeOption.Required,
-							new TransactionOptions()
-							{
-								IsolationLevel = IsolationLevel.ReadCommitted
-							}
+							context: new { groupInfo }
 						);
 		}
 
@@ -48,7 +42,7 @@ namespace Pug.Groups
 
 			string identifier = _identifierGenerator.GetNext();
 
-			GroupInfo groupInfo = new GroupInfo()
+			GroupInfo groupInfo = new ()
 				{ Identifier = identifier, Definition = definition };
 
 			return _AddGroupAsync( groupInfo );
@@ -60,12 +54,7 @@ namespace Pug.Groups
 			
 			return await ApplicationDataProvider.ExecuteAsync(
 							async ( session, context ) => { return await session.GetGroupsAsync( context.domain, context.name ); },
-							context: new { domain, name },
-							TransactionScopeOption.Required,
-							new TransactionOptions()
-							{
-								IsolationLevel = IsolationLevel.ReadCommitted
-							}
+							context: new { domain, name }
 						);
 		}
 
@@ -84,12 +73,7 @@ namespace Pug.Groups
 								return await _GetGroupAsync( dataSession, context.identifier, context.@this.ApplicationDataProvider,
 															context.@this.SecurityManager );
 							},
-							new { identifier, @this = this },
-							TransactionScopeOption.Required,
-							new TransactionOptions()
-							{
-								IsolationLevel = IsolationLevel.ReadCommitted
-							}
+							new { identifier, @this = this }
 						).ConfigureAwait( false );
 		}
 
@@ -113,12 +97,7 @@ namespace Pug.Groups
 
 			await ApplicationDataProvider.PerformAsync(
 					async ( session, context ) => { await session.DeleteAsync( context.identifier ).ConfigureAwait( false ); },
-					context: new { identifier },
-					TransactionScopeOption.Required,
-					new TransactionOptions()
-					{
-						IsolationLevel = IsolationLevel.ReadCommitted
-					}
+					context: new { identifier }
 				);
 		}
 
@@ -143,12 +122,7 @@ namespace Pug.Groups
 
 								return await Helpers.GetMembershipsAsync( context.subject, context.domain, session );
 							},
-							context: new { domain, subject, recursive },
-							TransactionScopeOption.Required,
-							new TransactionOptions()
-							{
-								IsolationLevel = IsolationLevel.ReadCommitted
-							}
+							context: new { domain, subject, recursive }
 
 						);
 		}
@@ -196,12 +170,7 @@ namespace Pug.Groups
 							await grp._AddMembersAsync( new[] { context.subject } );
 						}
 					},
-					new { @this = this, subject, groups },
-					TransactionScopeOption.Required,
-					new TransactionOptions()
-					{
-						IsolationLevel = IsolationLevel.ReadCommitted
-					}
+					new { @this = this, subject, groups }
 				);
 		}
 

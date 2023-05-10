@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using Pug.Effable;
 
 namespace Pug.Groups.Models
 {
@@ -10,5 +11,11 @@ namespace Pug.Groups.Models
 
 		[DataMember(IsRequired = true)]
 		public GroupDefinition Definition { get; set;  }
+		
+		[DataMember(IsRequired = true)]
+		public ActionContext<string> RegistrationInfo { get; set; }
+		
+		[DataMember(IsRequired = true)]
+		public ActionContext<string> LastUpdateInfo { get; set; }
 	}
 }

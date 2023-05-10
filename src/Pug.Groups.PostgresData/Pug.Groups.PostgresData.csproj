@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+		<LangVersion>9</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Pug.Groups.Common\Pug.Groups.Common.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Dapper.FluentMap" Version="2.0.0" />
+	</ItemGroup>
+
+</Project>

@@ -7,6 +7,8 @@ namespace Pug.Groups.Common
 	public interface IGroup
 	{
 		string Identifier { get; }
+
+		Task<GroupDefinition> GetDefinitionAsync();
 		
 		Task<GroupInfo> GetInfoAsync();
 		

@@ -29,7 +29,7 @@ namespace Pug.Groups
 			_domain = info.Definition.Domain;
 		}
 		
-		public async Task<GroupInfo> GetDefinitionAsync()
+		public async Task<GroupDefinition> GetDefinitionAsync()
 		{
 			await CheckAuthorizationAsync(_domain, SecurityOperations.GetDefinition, SecurityObjectTypes.Group, Identifier);
 
@@ -40,7 +40,13 @@ namespace Pug.Groups
 		{
 			await CheckAuthorizationAsync(_domain, SecurityOperations.GetInfo, SecurityObjectTypes.Group, Identifier);
 			
-			return await _GetInfoAsync();
+			return await ApplicationDataProvider.ExecuteAsync(
+					( dataSession, context ) =>
+					{
+						return dataSession.GetGroupInfoAsync( context.@this.Identifier );
+					},
+					context: new { @this = this }
+				);
 		}
 
 		public GroupInfo GetInfo()
@@ -84,15 +90,13 @@ namespace Pug.Groups
 			await _AddMembersAsync(subjects);
 		}
 
-		public async Task RemoveMemberAsync(Subject subject)
+		public Task RemoveMemberAsync(Subject subject)
 		{
 			if(subject == null) throw new ArgumentNullException(nameof(subject));
 			
 			Helpers.ValidateParameter(subject, nameof(subject));
 			
-			await CheckAuthorizationAsync(_domain, SecurityOperations.DeleteMembership, SecurityObjectTypes.Group, Identifier);
-
-			await _RemoveMemberAsync(subject);
+			return _RemoveMemberAsync( subject );
 		}
 	}
 }

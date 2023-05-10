@@ -13,7 +13,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Pug.Application.Data" Version="1.1.12" />
+	  <PackageReference Include="Pug.Application.Data" Version="1.2.1" />
 	</ItemGroup>
 
 </Project>

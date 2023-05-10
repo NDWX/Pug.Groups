@@ -18,12 +18,12 @@ namespace Pug.Groups.Common
 				throw new ArgumentException("Subject identifier must be specified", paramName);
 		}
 		
-		internal static ICollection<string> GetMemberships(Subject subject, string domain, IDataSession dataSession, List<string> evaluatedGroups = null)
+		internal static IEnumerable<string> GetMemberships(Subject subject, string domain, IDataSession dataSession, List<string> evaluatedGroups = null)
 		{
 			if(evaluatedGroups == null)
 				evaluatedGroups = new List<string>();
 			
-			List<string> roles = new List<string>();
+			List<string> roles = new ();
 			
 			IEnumerable<Membership> memberships = dataSession.GetMemberships(subject);
 			
@@ -49,12 +49,12 @@ namespace Pug.Groups.Common
 			return roles;
 		}
 		
-		internal static async Task<ICollection<Membership>> GetMembershipsAsync(Subject subject, string domain, IDataSession dataSession, List<string> evaluatedGroups = null)
+		internal static async Task<IEnumerable<Membership>> GetMembershipsAsync(Subject subject, string domain, IDataSession dataSession, List<string> evaluatedGroups = null)
 		{
 			if(evaluatedGroups == null)
 				evaluatedGroups = new List<string>();
 			
-			List<Membership> roles = new List<Membership>();
+			List<Membership> roles = new ();
 			
 			IEnumerable<Membership> memberships = await  dataSession.GetMembershipsAsync(subject);
 			
@@ -82,34 +82,31 @@ namespace Pug.Groups.Common
 
 		internal static async Task<bool> GroupHasMemberAsync(string groupIdentifier, Subject subject, bool recursive, IDataSession dataSession, List<string> inspectedMemberGroups = null)
 		{
-			IEnumerable<Membership> memberships = 
-				await dataSession.GetMembershipsAsync(groupIdentifier)
-								.ConfigureAwait(false);
-
-			Membership subjectMembership =
-				memberships.FirstOrDefault(x => x.Subject == subject);
-
-			if(subjectMembership != null)
+			if( await dataSession.GetMembershipAsync( subject, groupIdentifier ) is not null )
 				return true;
 
 			if(!recursive)
 				return false;
+			
+			IEnumerable<Membership> memberships = 
+				await dataSession.GetMembershipsAsync(groupIdentifier)
+								.ConfigureAwait(false);
 
 			if(inspectedMemberGroups == null)
 				inspectedMemberGroups = new List<string>();
 
-			IEnumerable<Membership> groupMembers =
+			IEnumerable<Membership> memberGroups =
 				memberships.Where(x => x.Subject.Type == SubjectTypes.GROUP);
 
-			foreach(Subject member in groupMembers.Select(x => x.Subject))
+			foreach(Subject group in memberGroups.Select(x => x.Subject))
 			{
-				if(inspectedMemberGroups.Contains(member.Identifier))
+				if(inspectedMemberGroups.Contains(group.Identifier))
 					continue;
 				
 				// prevent current group from being inspected again in recursive inspection
-				inspectedMemberGroups.Add(member.Identifier);
+				inspectedMemberGroups.Add(group.Identifier);
 
-				if(await GroupHasMemberAsync(member.Identifier, subject, recursive, dataSession,
+				if(await GroupHasMemberAsync(group.Identifier, subject, recursive, dataSession,
 										inspectedMemberGroups).ConfigureAwait(false))
 					return true;
 			}
@@ -119,17 +116,14 @@ namespace Pug.Groups.Common
 
 		internal static bool GroupHasMember(string groupIdentifier, Subject subject, bool recursive, IDataSession dataSession, List<string> inspectedMemberGroups = null)
 		{
-			IEnumerable<Membership> memberships =
-				dataSession.GetMemberships(groupIdentifier);
-
-			Membership subjectMembership =
-				memberships.FirstOrDefault(x => x.Subject == subject);
-
-			if(subjectMembership != null)
+			if( dataSession.GetMembership( subject, groupIdentifier ) is not null )
 				return true;
 
 			if(!recursive)
 				return false;
+			
+			IEnumerable<Membership> memberships =
+				dataSession.GetMemberships(groupIdentifier);
 
 			if(inspectedMemberGroups == null)
 				inspectedMemberGroups = new List<string>();
@@ -137,15 +131,15 @@ namespace Pug.Groups.Common
 			IEnumerable<Membership> groupMembers =
 				memberships.Where(x => x.Subject.Type == SubjectTypes.GROUP);
 
-			foreach(Subject member in groupMembers.Select(x => x.Subject))
+			foreach(Subject group in groupMembers.Select(x => x.Subject))
 			{
-				if(inspectedMemberGroups.Contains(member.Identifier))
+				if(inspectedMemberGroups.Contains(group.Identifier))
 					continue;
 				
 				// prevent current group from being inspected again in recursive inspection
-				inspectedMemberGroups.Add(member.Identifier);
+				inspectedMemberGroups.Add(group.Identifier);
 
-				if(GroupHasMember(member.Identifier, subject, recursive, dataSession,
+				if(GroupHasMember(group.Identifier, subject, recursive, dataSession,
 							inspectedMemberGroups))
 					return true;
 			}

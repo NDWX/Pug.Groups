@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Transactions;
+﻿using System.Threading.Tasks;
 using Pug.Application.Data;
 using Pug.Application.Security;
 using Pug.Groups.Common;
-using Pug.Groups.Models;
 
 namespace Pug.Groups
 {
@@ -41,12 +38,7 @@ namespace Pug.Groups
 						return _GetGroup(dataSession, context.identifier, context.@this.ApplicationDataProvider,
 										context.@this.SecurityManager);
 					},
-					new { identifier, @this = this },
-					TransactionScopeOption.Required,
-					new TransactionOptions()
-					{
-						IsolationLevel = IsolationLevel.ReadCommitted
-					}
+					new { identifier, @this = this }
 				);
 		}
 	}
