@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Pug.Application.Data;
+﻿using Pug.Application.Data;
 using Pug.Application.Security;
 using Pug.Groups.Common;
 
@@ -12,35 +9,41 @@ namespace Pug.Groups
 		protected IApplicationData<IDataSession> ApplicationDataProvider { get; }
 		protected ISecurityManager SecurityManager { get; }
 
-		protected GroupsBase(IApplicationData<IDataSession> applicationData, ISecurityManager securityManager)
+		protected GroupsBase( IApplicationData<IDataSession> applicationData,
+							ISecurityManager securityManager )
 		{
 			ApplicationDataProvider = applicationData ??
-										throw new ArgumentNullException(nameof(applicationData));
-			
-			SecurityManager = securityManager ?? throw new ArgumentNullException(nameof(securityManager));
+									throw new ArgumentNullException( nameof(applicationData) );
+
+			SecurityManager = securityManager ?? throw new ArgumentNullException( nameof(securityManager) );
 		}
 
-		protected void CheckAuthorization(string domain, string operation, string objectType, string objectName = "",
-										string purpose = "", IDictionary<string, string> context = null)
+		protected void CheckAuthorization( string domain, string operation, string objectType,
+											string objectName = "",
+											string purpose = "", IDictionary<string, string> context = null )
 		{
-			if(context == null)
-				context = new Dictionary<string, string>(0);
-			
-			bool isAuthorized = !SecurityManager.CurrentUser.IsAuthorized(context, operation, objectType, objectName, purpose,
-																			domain: domain);
-			if(!isAuthorized)
+			if( context == null )
+				context = new Dictionary<string, string>( 0 );
+
+			bool isAuthorized = SecurityManager.CurrentUser.IsAuthorized(
+				context, operation, objectType, objectName, purpose,
+				domain: domain );
+			if( !isAuthorized )
 				throw new NotAuthorized();
 		}
 
-		protected async Task CheckAuthorizationAsync(string domain, string operation, string objectType, string objectName = "",
-										string purpose = "", IDictionary<string, string> context = null)
+		protected async Task CheckAuthorizationAsync( string domain, string operation, string objectType,
+													string objectName = "",
+													string purpose = "",
+													IDictionary<string, string> context = null )
 		{
-			if(context == null)
-				context = new Dictionary<string, string>(0);
-			
-			bool isAuthorized = !await SecurityManager.CurrentUser.IsAuthorizedAsync(context, operation, objectType, objectName, purpose,
-																		domain: domain);
-			
+			if( context == null )
+				context = new Dictionary<string, string>( 0 );
+
+			bool isAuthorized = await SecurityManager.CurrentUser.IsAuthorizedAsync(
+									context, operation, objectType, objectName, purpose,
+									domain: domain );
+
 			if( !isAuthorized )
 				throw new NotAuthorized();
 

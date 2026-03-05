@@ -1,13 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Pug.Application.Data;
+﻿using Pug.Application.Data;
 using Pug.Application.Security;
 using Pug.Groups.Models;
 
 namespace Pug.Groups.Common
 {
-	internal class InternalUserRoleProvider : IUserRoleProvider
+	public class InternalUserRoleProvider : IUserRoleProvider
 	{
 		private readonly IApplicationData<IDataSession> _applicationData;
 
@@ -15,7 +12,7 @@ namespace Pug.Groups.Common
 		{
 			_applicationData = applicationData;
 		}
-		
+
 		public bool UserIsInRole(string user, string role)
 		{
 			return _applicationData.Execute(

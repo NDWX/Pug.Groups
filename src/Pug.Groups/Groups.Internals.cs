@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Pug.Application.Data;
+﻿using Pug.Application.Data;
 using Pug.Application.Security;
 using Pug.Groups.Common;
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Pug.Groups.Models;
+﻿using Pug.Groups.Models;
 
 namespace Pug.Groups.Common
 {

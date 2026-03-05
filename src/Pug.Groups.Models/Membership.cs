@@ -7,6 +7,14 @@ namespace Pug.Groups.Models
 	public record Membership : MembershipDefinition
 	{
 		[DataMember(IsRequired = true)]
-		public ActionContext<string> RegistrationInfo { get; set; }
+		public ActionContext<string> RegistrationInfo
+		{
+			get;
+#if NET5_0_OR_GREATER
+			init;
+#else
+			set;
+#endif
+		}
 	}
 }

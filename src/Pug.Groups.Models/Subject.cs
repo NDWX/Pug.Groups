@@ -6,9 +6,25 @@ namespace Pug.Groups.Models
 	public record Subject
 	{
 		[DataMember(IsRequired = true)]
-		public string Type { get; set; }
+		public string Type
+		{
+			get;
+#if NET5_0_OR_GREATER
+			init;
+#else
+			set;
+#endif
+		}
 		
 		[DataMember(IsRequired = true)]
-		public string Identifier { get; set; }
+		public string Identifier
+		{
+			get;
+#if NET5_0_OR_GREATER
+			init;
+#else
+			set;
+#endif
+		}
 	}
 }

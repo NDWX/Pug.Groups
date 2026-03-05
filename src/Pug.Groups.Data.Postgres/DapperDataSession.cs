@@ -17,7 +17,7 @@ namespace Pug.Groups.PostgresData
 		{
 		}
 
-		private const string GroupInsertQuery = 
+		private const string GroupInsertQuery =
 			@"insert into group(identifier, domain, name, description, registrationUser, registrationTimestamp)
 				values(@identifier, @domain, @name, @description, @registrationUser, @registrationTimestamp)";
 
@@ -26,10 +26,10 @@ namespace Pug.Groups.PostgresData
 			return new
 			{
 				groupInfo.Identifier, groupInfo.Definition.Domain, groupInfo.Definition.Name, groupInfo.Definition.Description,
-				groupInfo.RegistrationInfo.User, groupInfo.RegistrationInfo.Timestamp
+				registrationUser = groupInfo.RegistrationInfo.Actor, registrationTimestamp = groupInfo.RegistrationInfo.Timestamp
 			};
 		}
-		
+
 		public void Insert( GroupInfo groupInfo )
 		{
 			Connection.Execute(
@@ -46,8 +46,8 @@ namespace Pug.Groups.PostgresData
 				);
 		}
 
-		private const string GetGroupsQuery = 
-			@"select identifier, domain, name, description, registrationUser as user, registrationTimestamp as timestamp, lastUpdateUser as user, lastUpdateTimestamp as timestamp
+		private const string GetGroupsQuery =
+			@"select identifier, domain, name, description, registrationUser as actor, registrationTimestamp as timestamp, lastUpdateUser as actor, lastUpdateTimestamp as timestamp
 				from group
 				where domain = @domain and (name = @name or @name = '' or @name is null);";
 
@@ -59,14 +59,14 @@ namespace Pug.Groups.PostgresData
 				RegistrationInfo = registrationInfo,
 				LastUpdateInfo = lastUpdateInfo
 			};
-		
+
 		public Task<IEnumerable<GroupInfo>> GetGroupsAsync( string domain, string name )
 		{
 			return Connection.QueryAsync(
 					GetGroupsQuery,
 					param: new { domain, name },
-					splitOn: "domain, user, user",
-					map: MapToGroupInfo 
+					splitOn: "domain, actor, actor",
+					map: MapToGroupInfo
 				);
 		}
 
@@ -81,8 +81,8 @@ namespace Pug.Groups.PostgresData
 					);
 		}
 
-		private const string GetGroupInfoQuery = 
-			@"select identifier, domain, name, description, registrationUser, registrationTimestamp, lastUpdateUser, lastUpdateTimestamp
+		private const string GetGroupInfoQuery =
+			@"select identifier, domain, name, description, registrationUser as actor, registrationTimestamp, lastUpdateUser as actor, lastUpdateTimestamp
 				from group
 				where identifier = @identifier;";
 
@@ -92,7 +92,7 @@ namespace Pug.Groups.PostgresData
 						Connection.QueryAsync(
 								GetGroupInfoQuery,
 								param: new { identifier },
-								splitOn: "domain, registrationUser, lastUpdateUser",
+								splitOn: "domain, actor, actor",
 								map: MapToGroupInfo
 							)
 					).FirstOrDefault();
@@ -103,14 +103,14 @@ namespace Pug.Groups.PostgresData
 			return Connection.Query(
 									GetGroupInfoQuery,
 									param: new { identifier },
-									splitOn: "domain, user, user",
+									splitOn: "domain, actor, actor",
 									map: MapToGroupInfo
 								)
 							.FirstOrDefault();
 		}
 
 		private const string GetGroupMembershipsQuery =
-			@"select subjectType, subjectIdentifier, group, registrationTimestamp as timestamp, registrationUser as user
+			@"select subjectType, subjectIdentifier, group, registrationTimestamp as timestamp, registrationUser as actor
 				from membership where group = @group";
 
 		private readonly Func<MembershipDefinition, ActionContext<string>, Membership> ConstructMembership =
@@ -121,7 +121,7 @@ namespace Pug.Groups.PostgresData
 					Subject = definition.Subject,
 					RegistrationInfo = registrationInfo
 				};
-		
+
 		public Task<IEnumerable<Membership>> GetMembershipsAsync( string group )
 		{
 			return Connection.QueryAsync(
@@ -139,9 +139,9 @@ namespace Pug.Groups.PostgresData
 				splitOn: "timestamp",
 				map: ConstructMembership );
 		}
-		
+
 		private const string GetSubjectMembershipsQuery =
-			@"select subjectType, subjectIdentifier, group, registrationTimestamp as timestamp, registrationUser as userr
+			@"select subjectType, subjectIdentifier, group, registrationTimestamp as timestamp, registrationUser as actor
 				from membership 
 				where subjectType = @subjectType and subjectIdentifier = @subjectIdentifier and (domain = @domain or coalesce(@domain, '') = '')";
 
@@ -162,9 +162,9 @@ namespace Pug.Groups.PostgresData
 				splitOn: "timestamp",
 				map: ConstructMembership );
 		}
-	
+
 		private const string GetSubjectGroupMembershipQuery =
-			@"select subjectType, subjectIdentifier, group, registrationTimestamp as timestamp, registrationUser as user
+			@"select subjectType, subjectIdentifier, group, registrationTimestamp as timestamp, registrationUser as actor
 				from membership 
 				where subjectType = @subjectType and subjectIdentifier = @subjectIdentifier and group = @group";
 
@@ -184,7 +184,7 @@ namespace Pug.Groups.PostgresData
 						Connection.QueryAsync(
 							GetSubjectGroupMembershipQuery,
 							param: new { subjectType = subject.Type, subjectIdentifier = subject.Identifier, group },
-							splitOn: "registrationTimestamp",
+							splitOn: "timestamp",
 							map: ConstructMembership )
 					).FirstOrDefault();
 		}
@@ -192,19 +192,19 @@ namespace Pug.Groups.PostgresData
 		public Task InsertAsync( Membership membership )
 		{
 			return Connection.ExecuteAsync(
-					@"insert into membership(subjectType, subjectIdentifier, group, registrationUser as user, registrationTimestamp as timestamp)
+					@"insert into membership(subjectType, subjectIdentifier, group, registrationUser, registrationTimestamp)
 							values(@subjectType, @subjectIdentifier, @group, @registrationUser, @registrationTimestamp)",
 					param: new
 					{
 						subjectType = membership.Subject.Type,
 						subjectIdentifier = membership.Subject.Identifier,
 						membership.Group,
-						membership.RegistrationInfo.User,
-						membership.RegistrationInfo.Timestamp
+						registrationUser = membership.RegistrationInfo.Actor,
+						registrationTimestamp = membership.RegistrationInfo.Timestamp
 					}
 				);
 		}
-		
+
 		public Task DeleteAsync( string @group, Subject subject )
 		{
 			return Connection.ExecuteAsync(

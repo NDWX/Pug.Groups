@@ -1,8 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Pug.Application.Data;
+﻿using Pug.Application.Data;
 using Pug.Effable;
 using Pug.Groups.Common;
 using Pug.Groups.Models;
@@ -12,7 +8,7 @@ namespace Pug.Groups
 	public partial class Group
 	{
 		private readonly string _domain;
-		
+
 		private async Task<GroupDefinition> _GetDefinitionAsync()
 		{
 			return await ApplicationDataProvider.ExecuteAsync(
@@ -34,7 +30,7 @@ namespace Pug.Groups
 									context: new { @this = this }
 								);
 		}
-		
+
 		internal async Task _AddMembersAsync(IEnumerable<Subject> subjects)
 		{
 			await ApplicationDataProvider.PerformAsync(
@@ -52,7 +48,7 @@ namespace Pug.Groups
 								RegistrationInfo = new ActionContext<string>()
 								{
 									Timestamp = DateTime.Now,
-									User = context.@this.SecurityManager.CurrentUser.Identity.Identifier
+									Actor = context.@this.SecurityManager.CurrentUser.Identity.Identifier
 								}
 							};
 
