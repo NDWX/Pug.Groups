@@ -26,5 +26,16 @@ namespace Pug.Groups.Models
 			set;
 #endif
 		}
-	}
+
+		[DataMember(IsRequired = true)]
+		public string Domain
+		{
+            get;
+#if NET5_0_OR_GREATER
+			init;
+#else
+            set;
+#endif
+        }
+    }
 }
