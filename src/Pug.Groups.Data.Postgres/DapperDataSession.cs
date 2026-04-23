@@ -111,14 +111,13 @@ namespace Pug.Groups.PostgresData
 		}
 
 		private const string GetGroupMembershipsQuery =
-			@"select subjectType as type, subjectIdentifier as identifier, ""group"", domain, registrationTimestamp as timestamp, registrationUser as actor
+			@"select subjectType as type, subjectIdentifier as identifier, ""group"", registrationTimestamp as timestamp, registrationUser as actor
 				from membership where ""group"" = @group";
 
 		private readonly Func<Subject, MembershipDefinition, ActionContext<string>, Membership> ConstructMembership =
 			( subject, definition, registrationInfo ) =>
 				new Membership()
 				{
-					Domain = definition.Domain,
 					Group = definition.Group,
 					Subject = subject,
 					RegistrationInfo = registrationInfo
@@ -143,9 +142,10 @@ namespace Pug.Groups.PostgresData
 		}
 
 		private const string GetSubjectMembershipsQuery =
-			@"select subjectType as type, subjectIdentifier as identifier, ""group"", domain, registrationTimestamp as timestamp, registrationUser as actor
-				from membership 
-				where subjectType = @subjectType and subjectIdentifier = @subjectIdentifier and (domain = @domain or coalesce(@domain, '') = '')";
+			@"select ms.subjectType as type, ms.subjectIdentifier as identifier, ms.""group"", ms.registrationTimestamp as timestamp, ms.registrationUser as actor
+				from membership	ms
+				inner join ""group"" gp on ms.""group"" = gp.identifier
+				where ms.subjectType = @subjectType and ms.subjectIdentifier = @subjectIdentifier and (gp.domain = @domain or coalesce(@domain, '') = '')";
 
 		public Task<IEnumerable<Membership>> GetMembershipsAsync( Subject subject, string domain = null )
 		{
@@ -166,7 +166,7 @@ namespace Pug.Groups.PostgresData
 		}
 
 		private const string GetSubjectGroupMembershipQuery =
-			@"select subjectType as type, subjectIdentifier as identifier, ""group"", domain, registrationTimestamp as timestamp, registrationUser as actor
+			@"select subjectType as type, subjectIdentifier as identifier, ""group"", registrationTimestamp as timestamp, registrationUser as actor
 				from membership 
 				where subjectType = @subjectType and subjectIdentifier = @subjectIdentifier and group = @group";
 
@@ -194,14 +194,13 @@ namespace Pug.Groups.PostgresData
 		public Task InsertAsync( Membership membership )
 		{
 			return Connection.ExecuteAsync(
-					@"insert into membership(subjectType, subjectIdentifier, ""group"", domain, registrationUser, registrationTimestamp)
-							values(@subjectType, @subjectIdentifier, @group, @domain, @registrationUser, @registrationTimestamp)",
+					@"insert into membership(subjectType, subjectIdentifier, ""group"", registrationUser, registrationTimestamp)
+							values(@subjectType, @subjectIdentifier, @group, @registrationUser, @registrationTimestamp)",
 					param: new
 					{
 						subjectType = membership.Subject.Type,
 						subjectIdentifier = membership.Subject.Identifier,
 						membership.Group,
-						membership.Domain,
 						registrationUser = membership.RegistrationInfo.Actor ?? string.Empty,
 						registrationTimestamp = membership.RegistrationInfo.Timestamp
 					}

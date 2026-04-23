@@ -50,15 +50,13 @@ namespace Pug.Groups.PostgresData
 										    subjectType character varying not null, 
 										    subjectIdentifier character varying not null,
 										    ""group"" character varying not null,
-											domain character varying not null,
 										    registrationTimestamp timestamp with time zone not null,
 										    registrationUser character varying not null,
-										    primary key (subjectType, subjectIdentifier, ""group"", domain)						    
+										    primary key (subjectType, subjectIdentifier, ""group"")						    
 										);
 
 										create index membership_registrationUser_idx ON membership(registrationUser);
 										create index membership_group_idx on membership(""group"");
-										create index membership_domain_idx on membership(domain);
 										create index membership_subject_idx on membership(subjectType, subjectIdentifier);",
 								"drop table membership;" )
 						}

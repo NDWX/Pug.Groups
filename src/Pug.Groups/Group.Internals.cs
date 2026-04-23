@@ -45,7 +45,6 @@ namespace Pug.Groups
 							{
 								Subject = subject,
 								Group = context.@this.Identifier,
-								Domain = context.@this._domain,
 								RegistrationInfo = new ActionContext<string>()
 								{
 									Timestamp = DateTime.Now,
