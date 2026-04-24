@@ -54,7 +54,7 @@ jobs:
         run: mkdir packages
 
       - name: Pack Models project
-        run: dotnet pack --no-build --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.ModelsProject}}
+        run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.ModelsProject}}
 
       - name: Publish Models NuGet package
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
@@ -63,7 +63,7 @@ jobs:
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Pack Common project
-        run: dotnet pack --no-build --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.CommonProject}}
+        run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.CommonProject}}
 
       - name: Publish Common NuGet package
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
@@ -75,7 +75,7 @@ jobs:
         run: rm packages/*.nupkg
 
       - name: Pack Data Common project
-        run: dotnet pack --no-build --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.DataCommonProject}}
+        run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.DataCommonProject}}
 
       - name: Publish Data Common NuGet package
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
@@ -87,7 +87,7 @@ jobs:
         run: rm packages/*.nupkg
 
       - name: Pack Postgres Data project
-        run: dotnet pack --no-build --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.PostgresDataProject}}
+        run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.PostgresDataProject}}
 
       - name: Publish Postgres Data NuGet package
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
@@ -99,7 +99,7 @@ jobs:
         run: rm packages/*.nupkg
 
       - name: Pack Main project
-        run: dotnet pack --no-build --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.MainProject}}
+        run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.MainProject}}
 
       - name: Publish Main NuGet package
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
@@ -111,7 +111,7 @@ jobs:
         run: rm packages/*.nupkg
 
       - name: Pack Dependency Injection project
-        run: dotnet pack --no-build --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.DependencyInjectionProject}}
+        run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.DependencyInjectionProject}}
 
       - name: Publish Dependency Injection NuGet package
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
