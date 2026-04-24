@@ -1,0 +1,107 @@
+name: main - build and NuGet publish
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  BuildConfiguration: release
+  Solution: Pug.Groups.slnx
+  ModelsProject: src/Pug.Groups.Models/Pug.Groups.Models.csproj
+  CommonProject: src/Pug.Groups.Common/Pug.Groups.Common.csproj
+  DataCommonProject: src/Pug.Groups.Data.Common/Pug.Groups.Data.Common.csproj
+  PostgresDataProject: src/Pug.Groups.Data.Postgres/Pug.Groups.Data.Postgres.csproj
+  MainProject: src/Pug.Groups/Pug.Groups.csproj
+  DependencyInjectionProject: src/Pug.Groups.DependencyInjection/Pug.Groups.DependencyInjection.csproj
+  PackagesBaseFolder: packages
+
+jobs:
+  build:
+    name: Build and publish NuGet packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      
+      # Authenticates packages to push to GPR
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x' # SDK Version to use.
+          source-url: https://nuget.pkg.github.com/NDWX/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: SonarCloud Scan
+        run: |
+          dotnet tool install --global dotnet-sonarscanner
+          dotnet sonarscanner begin /o:ndwx /k:NDWX_Pug.Groups /d:sonar.token=${{secrets.SONAR_TOKEN}}  /d:sonar.host.url=https://sonarcloud.io /d:sonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Restore NuGet packages
+        run: dotnet restore --nologo ${{env.Solution}}
+
+      - name: Build solution
+        run: dotnet build --nologo --no-restore --configuration ${{env.BuildConfiguration}} ${{env.Solution}}
+
+      - name: End Sonar scan
+        run: dotnet sonarscanner end /d:sonar.token=${{ secrets.SONAR_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create packages base folder
+        run: mkdir packages
+
+      - name: Pack Models project
+        run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.ModelsProject}}
+
+      - name: Publish Models NuGet package to NuGet.org
+        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Clear packages folder
+        run: rm packages/*.nupkg
+
+      - name: Pack Common project
+        run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.CommonProject}}
+
+      - name: Publish Common NuGet package to NuGet.org
+        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Clear packages folder
+        run: rm packages/*.nupkg
+
+      - name: Pack Data Common project
+        run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.DataCommonProject}}
+
+      - name: Publish Data Common NuGet package to NuGet.org
+        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Clear packages folder
+        run: rm packages/*.nupkg
+
+      - name: Pack Postgres Data project
+        run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.PostgresDataProject}}
+
+      - name: Publish Postgres Data NuGet package to NuGet.org
+        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Clear packages folder
+        run: rm packages/*.nupkg
+
+      - name: Pack Main project
+        run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.MainProject}}
+
+      - name: Publish Main NuGet package to NuGet.org
+        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Clear packages folder
+        run: rm packages/*.nupkg
+
+      - name: Pack Dependency Injection project
+        run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.DependencyInjectionProject}}
+
+      - name: Publish Dependency Injection NuGet package to NuGet.org
+        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
