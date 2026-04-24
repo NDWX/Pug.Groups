@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '9.0.x' # SDK Version to use.
-          source-url: https://nuget.pkg.github.com.Groups.index.json
+          source-url: https://nuget.pkg.github.com/Pug.Groups/index.json
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
