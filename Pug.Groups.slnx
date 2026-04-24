@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="src/Pug.Groups.Common/Pug.Groups.Common.csproj" />
+  <Project Path="src/Pug.Groups.Data.Common/Pug.Groups.Data.Common.csproj" />
+  <Project Path="src/Pug.Groups.Data.Postgres/Pug.Groups.Data.Postgres.csproj" />
+  <Project Path="src/Pug.Groups.DependencyInjection/Pug.Groups.DependencyInjection.csproj" />
+  <Project Path="src/Pug.Groups.Models/Pug.Groups.Models.csproj" />
+  <Project Path="src/Pug.Groups/Pug.Groups.csproj" />
+</Solution>

@@ -7,7 +7,7 @@ on:
 
 env:
   BuildConfiguration: debug
-  Solution: Pug.Groups.sln
+  Solution: Pug.Groups.slnx
   ModelsProject: src/Pug.Groups.Models/Pug.Groups.Models.csproj
   CommonProject: src/Pug.Groups.Common/Pug.Groups.Common.csproj
   MainProject: src/Pug.Groups/Pug.Groups.csproj
