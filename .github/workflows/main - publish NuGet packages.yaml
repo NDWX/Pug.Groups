@@ -1,4 +1,4 @@
-name: master - build and NuGet publish
+name: main - build and NuGet publish
 
 on:
   push:
@@ -10,10 +10,10 @@ env:
   Solution: Pug.Groups.slnx
   ModelsProject: src/Pug.Groups.Models/Pug.Groups.Models.csproj
   CommonProject: src/Pug.Groups.Common/Pug.Groups.Common.csproj
-  DataCommonProject: src/Pug.Groups.Data.Common.csproj
-  PostgresDataProject: src/Pug.Groups.Data.Postgres.csproj
+  DataCommonProject: src/Pug.Groups.Data.Common/Pug.Groups.Data.Common.csproj
+  PostgresDataProject: src/Pug.Groups.Data.Postgres/Pug.Groups.Data.Postgres.csproj
   MainProject: src/Pug.Groups/Pug.Groups.csproj
-  DependencyInjectionProject: src/Pug.Groups.DependencyInjection.csproj
+  DependencyInjectionProject: src/Pug.Groups.DependencyInjection/Pug.Groups.DependencyInjection.csproj
   PackagesBaseFolder: packages
 
 jobs:
@@ -21,20 +21,22 @@ jobs:
     name: Build and publish NuGet packages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       
       # Authenticates packages to push to GPR
-      - uses: actions/setup-dotnet@v1
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x' # SDK Version to use.
-          source-url: https://nuget.pkg.github.com/Pug.Groups/index.json
+          source-url: https://nuget.pkg.github.com/NDWX/index.json
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
       - name: SonarCloud Scan
         run: |
           dotnet tool install --global dotnet-sonarscanner
-          dotnet sonarscanner begin /o:ndwx /k:NDWX_Pug.Groups /d:sonar.login=${{secrets.SONAR_TOKEN}}  /d:sonar.host.url=https://sonarcloud.io /d:sonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
+          dotnet sonarscanner begin /o:ndwx /k:NDWX_Pug.Groups /d:sonar.token=${{secrets.SONAR_TOKEN}}  /d:sonar.host.url=https://sonarcloud.io /d:sonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -46,7 +48,7 @@ jobs:
         run: dotnet build --nologo --no-restore --configuration ${{env.BuildConfiguration}} ${{env.Solution}}
 
       - name: End Sonar scan
-        run: dotnet sonarscanner end /d:sonar.login=${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.token=${{ secrets.SONAR_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -58,6 +60,9 @@ jobs:
 
       - name: Publish Models NuGet package to NuGet.org
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Clear packages folder
+        run: rm packages/*.nupkg
 
       - name: Pack Common project
         run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.CommonProject}}
