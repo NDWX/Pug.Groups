@@ -23,7 +23,7 @@ jobs:
       # Authenticates packages to push to GPR
       - uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '8.0.x' # SDK Version to use.
+          dotnet-version: '9.0.x' # SDK Version to use.
           source-url: https://nuget.pkg.github.com.Groups.index.json
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
