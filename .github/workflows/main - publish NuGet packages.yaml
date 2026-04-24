@@ -56,17 +56,11 @@ jobs:
       - name: Pack Models project
         run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.ModelsProject}}
 
-      - name: Publish Models NuGet package
-        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
-
       - name: Publish Models NuGet package to NuGet.org
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Pack Common project
         run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.CommonProject}}
-
-      - name: Publish Common NuGet package
-        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
 
       - name: Publish Common NuGet package to NuGet.org
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
@@ -77,9 +71,6 @@ jobs:
       - name: Pack Data Common project
         run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.DataCommonProject}}
 
-      - name: Publish Data Common NuGet package
-        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
-
       - name: Publish Data Common NuGet package to NuGet.org
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
@@ -88,9 +79,6 @@ jobs:
 
       - name: Pack Postgres Data project
         run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.PostgresDataProject}}
-
-      - name: Publish Postgres Data NuGet package
-        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
 
       - name: Publish Postgres Data NuGet package to NuGet.org
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
@@ -101,9 +89,6 @@ jobs:
       - name: Pack Main project
         run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.MainProject}}
 
-      - name: Publish Main NuGet package
-        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
-
       - name: Publish Main NuGet package to NuGet.org
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
@@ -112,9 +97,6 @@ jobs:
 
       - name: Pack Dependency Injection project
         run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.DependencyInjectionProject}}
-
-      - name: Publish Dependency Injection NuGet package
-        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
 
       - name: Publish Dependency Injection NuGet package to NuGet.org
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
