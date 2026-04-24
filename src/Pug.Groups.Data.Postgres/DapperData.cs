@@ -27,7 +27,7 @@ namespace Pug.Groups.PostgresData
 						{
 							new UpgradeScript(
 									"Group table", Empty,
-									@"create table group(
+									@"create table ""group""(
 											    identifier character varying not null,
 											    domain character varying not null default '',
 											    name character varying not null,
@@ -37,11 +37,11 @@ namespace Pug.Groups.PostgresData
 											    lastUpdateTimestamp timestamp with time zone,
 											    lastUpdateUser character varying not null default '',
 											    primary key (identifier),
-											    constraint unique (domain, name)						    
+											    unique (domain, name)						    
 											);
 
-											create index group_registrationUser_idx on group(registrationUser);
-											create index group_lastUpdateUser_idx on group(lastUpdateUser);",
+											create index group_registrationUser_idx on ""group""(registrationUser);
+											create index group_lastUpdateUser_idx on ""group""(lastUpdateUser);",
 									@"drop table group;"
 								),
 							new UpgradeScript(
@@ -49,14 +49,14 @@ namespace Pug.Groups.PostgresData
 								@"create table membership(
 										    subjectType character varying not null, 
 										    subjectIdentifier character varying not null,
-										    group character varying not null,
+										    ""group"" character varying not null,
 										    registrationTimestamp timestamp with time zone not null,
 										    registrationUser character varying not null,
-										    primary key (subjectType, subjectIdentifier, group)						    
+										    primary key (subjectType, subjectIdentifier, ""group"")						    
 										);
 
 										create index membership_registrationUser_idx ON membership(registrationUser);
-										create index membership_group_idx on membership(group);
+										create index membership_group_idx on membership(""group"");
 										create index membership_subject_idx on membership(subjectType, subjectIdentifier);",
 								"drop table membership;" )
 						}

@@ -38,8 +38,8 @@ namespace Pug.Groups
 
 			string identifier = _identifierGenerator.GetNext();
 
-			GroupInfo groupInfo = new ()
-				{ Identifier = identifier, Definition = definition };
+			GroupInfo groupInfo = new()
+			{ Identifier = identifier, Definition = definition };
 
 			return _AddGroupAsync( groupInfo );
 		}

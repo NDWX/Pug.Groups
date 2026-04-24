@@ -26,5 +26,5 @@ namespace Pug.Groups.Models
 			set;
 #endif
 		}
-	}
+    }
 }
