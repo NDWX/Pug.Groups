@@ -3,14 +3,17 @@ name: master - build and NuGet publish
 on:
   push:
     branches:
-      - master
+      - main
 
 env:
   BuildConfiguration: release
   Solution: Pug.Groups.slnx
   ModelsProject: src/Pug.Groups.Models/Pug.Groups.Models.csproj
   CommonProject: src/Pug.Groups.Common/Pug.Groups.Common.csproj
-  MainProject: src/Pug.Groups.Pug.Groups.csproj
+  DataCommonProject: src/Pug.Groups.Data.Common.csproj
+  PostgresDataProject: src/Pug.Groups.Data.Postgres.csproj
+  MainProject: src/Pug.Groups/Pug.Groups.csproj
+  DependencyInjectionProject: src/Pug.Groups.DependencyInjection.csproj
   PackagesBaseFolder: packages
 
 jobs:
@@ -39,14 +42,8 @@ jobs:
       - name: Restore NuGet packages
         run: dotnet restore --nologo ${{env.Solution}}
 
-      - name: Build Models project
-        run: dotnet build --nologo --no-restore --configuration ${{env.BuildConfiguration}} ${{env.ModelsProject}}
-
-      - name: Build Common project
-        run: dotnet build --nologo --no-restore --configuration ${{env.BuildConfiguration}} ${{env.CommonProject}}
-
-      - name: Build Main project
-        run: dotnet build --nologo --no-restore --configuration ${{env.BuildConfiguration}} ${{env.MainProject}}
+      - name: Build solution
+        run: dotnet build --nologo --no-restore --configuration ${{env.BuildConfiguration}} ${{env.Solution}}
 
       - name: End Sonar scan
         run: dotnet sonarscanner end /d:sonar.login=${{ secrets.SONAR_TOKEN }}
@@ -77,6 +74,30 @@ jobs:
       - name: Clear packages folder
         run: rm packages/*.nupkg
 
+      - name: Pack Data Common project
+        run: dotnet pack --no-build --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.DataCommonProject}}
+
+      - name: Publish Data Common NuGet package
+        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
+
+      - name: Publish Data Common NuGet package to NuGet.org
+        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Clear packages folder
+        run: rm packages/*.nupkg
+
+      - name: Pack Postgres Data project
+        run: dotnet pack --no-build --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.PostgresDataProject}}
+
+      - name: Publish Postgres Data NuGet package
+        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
+
+      - name: Publish Postgres Data NuGet package to NuGet.org
+        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Clear packages folder
+        run: rm packages/*.nupkg
+
       - name: Pack Main project
         run: dotnet pack --no-build --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.MainProject}}
 
@@ -88,3 +109,12 @@ jobs:
 
       - name: Clear packages folder
         run: rm packages/*.nupkg
+
+      - name: Pack Dependency Injection project
+        run: dotnet pack --no-build --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.DependencyInjectionProject}}
+
+      - name: Publish Dependency Injection NuGet package
+        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --skip-duplicate
+
+      - name: Publish Dependency Injection NuGet package to NuGet.org
+        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
