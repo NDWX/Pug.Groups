@@ -14,6 +14,7 @@
 		<PackageLicenseExpression>Apache-2.0+</PackageLicenseExpression>
 		<License>Apache2.0</License>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+		<PackageReleaseNotes>Removed Pug.Authorized package dependency, and upgraded Pug.Application.ServiceModel to v2.1.0</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -22,8 +23,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Pug.Application.ServiceModel" Version="1.1.2" />
-	  <PackageReference Include="Pug.Authorized" Version="0.7.0" />
+	  <PackageReference Include="Pug.Application.ServiceModel" Version="2.1.0" />
+		<PackageReference Include="Pug.Application.Data.Extensions" Version="1.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

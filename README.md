@@ -11,3 +11,17 @@ See [Authorized](https://github.com/NDWX/Authorized) for multi-tenant role-based
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=NDWX_Pug.Groups&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=NDWX_Pug.Groups) [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=NDWX_Pug.Groups&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=NDWX_Pug.Groups) [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=NDWX_Pug.Groups&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=NDWX_Pug.Groups)
 
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=NDWX_Pug.Groups&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=NDWX_Pug.Groups)  [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=NDWX_Pug.Groups&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=NDWX_Pug.Groups) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=NDWX_Pug.Groups&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=NDWX_Pug.Groups) 
+# Pug.Groups
+
+Pug.Groups is a framework for and implementation of multi-tenant (domains) group membership management.
+
+In addition, it also provides implementation for IUserRoleProvider that can be used by authorization provider library intended to be used to provide access control mechanism to it's own resources.
+
+## Projects Structure
+
+- Pug.Groups.Models: Contains domain entity models for group membership management
+- Pug.Groups.Common: Contains domain level abstractions
+- Pug.Groups.Data.Common: Contains abstractions for data access layer components
+- Pug.Groups.Data.Postgres: Contains implementation for data access layer components for PostgreSQL database
+- Pug.Groups.Data.Sqlite: Contains implementation for data access layer components for SQLite database
+- Pug.Groups.DependencyInjection: Contains .NET IServiceCollection dependency injection configuration for Pug.Groups
