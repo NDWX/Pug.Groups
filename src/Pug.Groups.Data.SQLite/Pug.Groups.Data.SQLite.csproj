@@ -1,10 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;netcoreapp3.1;net5.0</TargetFrameworks>
-		<LangVersion>9</LangVersion>
+		<TargetFrameworks>net6.0;net8.0;net10.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace>Pug.Groups.SQLiteData</RootNamespace>
 		<Product>Pug.Groups</Product>
-		<Title>Pug.Groups.Models</Title>
+		<Title>Pug.Groups.Data.SQLite</Title>
 		<RepositoryType>Git</RepositoryType>
 		<RepositoryUrl>https://github.com/NDWX/Pug.Groups.git</RepositoryUrl>
 		<AssemblyVersion>0.0.0.1</AssemblyVersion>
@@ -17,7 +19,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Pug.Effable" Version="3.0.3" />
+	  <ProjectReference Include="..\Pug.Groups.Data.Common\Pug.Groups.Data.Common.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Dapper" Version="2.1.35" />
+		<PackageReference Include="Pug.Application.Data" Version="1.4.0" />
 	</ItemGroup>
 
 </Project>

@@ -1,4 +1,5 @@
 using Pug.Application.Data;
+using Pug.Application.Data.Extensions;
 using Pug.Application.Security;
 using Pug.Groups.Common;
 using Pug.Groups.Models;
@@ -19,17 +20,21 @@ namespace Pug.Groups
 
 		private async Task<string> _AddGroupAsync( GroupInfo groupInfo )
 		{
-			await CheckAuthorizationAsync( groupInfo.Definition.Domain, SecurityOperations.Create, SecurityObjectTypes.Group );
+			await CheckAuthorizationAsync(
+					SecurityOperations.Create,
+					ResourceQualifiers.AnyGroup( groupInfo.Definition.Domain)
+				)
+				.ConfigureAwait( false );
 
 			return await ApplicationDataProvider.ExecuteAsync(
-							async ( session, context ) =>
-							{
-								await session.InsertAsync( context.groupInfo ).ConfigureAwait( false );
+						async ( session, context ) =>
+						{
+							await session.InsertAsync( context.groupInfo ).ConfigureAwait( false );
 
-								return context.groupInfo.Identifier;
-							},
-							context: new { groupInfo }
-						);
+							return context.groupInfo.Identifier;
+						},
+						context: new { groupInfo }
+					).ConfigureAwait( false );
 		}
 
 		public Task<string> AddGroupAsync( GroupDefinition definition )
@@ -46,12 +51,16 @@ namespace Pug.Groups
 
 		private async Task<IEnumerable<GroupInfo>> _GetGroupsAsync( string domain, string name )
 		{
-			await CheckAuthorizationAsync( domain, SecurityOperations.List, SecurityObjectTypes.Group );
+			await CheckAuthorizationAsync(
+					SecurityOperations.List,
+					ResourceQualifiers.AnyGroup( domain)
+				)
+				.ConfigureAwait( false );
 			
 			return await ApplicationDataProvider.ExecuteAsync(
-							async ( session, context ) => { return await session.GetGroupsAsync( context.domain, context.name ); },
-							context: new { domain, name }
-						);
+						async ( session, context ) => { return await session.GetGroupsAsync( context.domain, context.name ).ConfigureAwait( false ); },
+						context: new { domain, name }
+					).ConfigureAwait( false );
 		}
 
 		public Task<IEnumerable<GroupInfo>> GetGroupsAsync( string domain, string name = null )
@@ -67,7 +76,7 @@ namespace Pug.Groups
 							function: async ( dataSession, context ) =>
 							{
 								return await _GetGroupAsync( dataSession, context.identifier, context.@this.ApplicationDataProvider,
-															context.@this.SecurityManager );
+															context.@this.SecurityManager ).ConfigureAwait( false );
 							},
 							new { identifier, @this = this }
 						).ConfigureAwait( false );
@@ -83,18 +92,29 @@ namespace Pug.Groups
 
 		private async Task _DeleteGroupAsync( string identifier )
 		{
-			IGroup grp = new Group( identifier, ApplicationDataProvider, SecurityManager );
-			GroupInfo info = await grp.GetInfoAsync();
-
-			if( info == null )
-				return;
-
-			await CheckAuthorizationAsync( info.Definition.Domain, SecurityOperations.Delete, SecurityObjectTypes.Group, identifier );
-
 			await ApplicationDataProvider.PerformAsync(
-					async ( session, context ) => { await session.DeleteAsync( context.identifier ).ConfigureAwait( false ); },
-					context: new { identifier }
-				);
+				async ( session, context ) =>
+				{
+					GroupInfo info = await session.GetGroupInfoAsync(context.identifier).ConfigureAwait( false );
+
+					if( info == null )
+						return;
+
+					await context.@this.CheckAuthorizationAsync(
+							SecurityOperations.Delete,
+							new NounQualifier()
+							{
+								Domain = info.Definition.Domain,
+									Type = SecurityObjectTypes.Group,
+									Identifier = context.identifier
+							}
+						)
+						.ConfigureAwait( false );
+					
+					await session.DeleteAsync( context.identifier ).ConfigureAwait( false );
+				},
+				context: new {@this = this, identifier }
+			).ConfigureAwait( false );
 		}
 
 		public Task DeleteGroupAsync( string identifier )
@@ -104,70 +124,75 @@ namespace Pug.Groups
 			return _DeleteGroupAsync( identifier );
 		}
 
-		private async Task<IEnumerable<Membership>> _GetMemberships( string domain, Subject subject,
+		private async Task<IEnumerable<Membership>> _GetMemberships( Subject subject, string domain,
 																			bool recursive = false )
 		{
-
-			await CheckAuthorizationAsync( domain, SecurityOperations.ListMemberships, SecurityObjectTypes.Subject );
+			await CheckAuthorizationAsync(
+					SecurityOperations.ListMemberships,
+					ResourceQualifiers.AnyGroup( domain)
+				)
+				.ConfigureAwait( false );
 
 			return await ApplicationDataProvider.ExecuteAsync(
-							async ( session, context ) =>
-							{
-								if( !context.recursive )
-									return await session.GetMembershipsAsync( context.subject, context.domain );
+						async ( session, context ) =>
+						{
+							if( !context.recursive )
+								return await session.GetMembershipsAsync( context.subject, context.domain ).ConfigureAwait( false );
 
-								return await Helpers.GetMembershipsAsync( context.subject, context.domain, session );
-							},
-							context: new { domain, subject, recursive }
+							return await Helpers.GetMembershipsAsync( context.subject, context.domain, session ).ConfigureAwait( false );
+						},
+						context: new { subject, recursive, domain }
 
-						);
+					).ConfigureAwait( false );
 		}
 
 		public Task<IEnumerable<Membership>> GetMemberships( string domain, Subject subject,
 																	bool recursive = false )
 		{
-			if( domain == null ) throw new ArgumentNullException( nameof(domain) );
 			if( subject == null ) throw new ArgumentNullException( nameof(subject) );
 
 			if( string.IsNullOrWhiteSpace( subject.Type ) || string.IsNullOrWhiteSpace( subject.Identifier ) )
 				throw new ArgumentException( "Subject type and identifier must be specified", nameof(subject) );
 
-			return _GetMemberships( domain, subject, recursive );
+			return _GetMemberships( subject, domain, recursive );
 		}
 
 		private async Task _AddToGroupsAsync( Subject subject, IEnumerable<string> groups )
 		{
-			foreach( string group in groups )
-			{
-				IGroup grp = new Group( group, ApplicationDataProvider, SecurityManager );
-				GroupInfo info = await grp.GetInfoAsync();
-
-				if( info == null )
-					throw new UnknownGroupException( group );
-
-				await CheckAuthorizationAsync( info.Definition.Domain, SecurityOperations.CreateMembership, SecurityObjectTypes.Group, group );
-			}
-
 			await ApplicationDataProvider.PerformAsync(
-					action: async ( dataSession, context ) =>
+				action: async ( dataSession, context ) =>
+				{
+					foreach( string group in context.groups )
 					{
-						foreach( string group in context.groups )
-						{
-							if( await dataSession.GetGroupInfoAsync( group ) == null )
-								throw new UnknownGroupException( group );
-						}
+						GroupInfo info = await dataSession.GetGroupInfoAsync( group ).ConfigureAwait( false );
 
-						foreach( string group in context.groups )
-						{
-							Group grp = await _GetGroupAsync( dataSession, @group, context.@this.ApplicationDataProvider,
-															context.@this.SecurityManager ) as Group;
+						if( info == null )
+							throw new UnknownGroupException( group );
 
-							// ReSharper disable once PossibleNullReferenceException
-							await grp._AddMembersAsync( new[] { context.subject } );
-						}
-					},
-					new { @this = this, subject, groups }
-				);
+						await CheckAuthorizationAsync(
+								SecurityOperations.CreateMembership,
+								new NounQualifier()
+								{
+									Domain = info.Definition.Domain,
+									Type = SecurityObjectTypes.Group,
+									Identifier = group
+								}
+							)
+							.ConfigureAwait( false );
+					}
+
+					foreach( string group in context.groups )
+					{
+						await Helpers.RegisterMembershipAsync(
+							subject,
+							group,
+							context.@this.SecurityManager.CurrentUser,
+							dataSession
+						).ConfigureAwait( false );
+					}
+				},
+				new { @this = this, subject, groups }
+			).ConfigureAwait( false );
 		}
 
 		public Task AddToGroupsAsync( Subject subject, IEnumerable<string> groups )

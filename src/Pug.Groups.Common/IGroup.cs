@@ -11,8 +11,6 @@ namespace Pug.Groups.Common
 		Task<GroupDefinition> GetDefinitionAsync();
 		
 		Task<GroupInfo> GetInfoAsync();
-		
-		GroupInfo GetInfo();
 
 		Task<IEnumerable<Membership>> GetMembershipsAsync();
 		

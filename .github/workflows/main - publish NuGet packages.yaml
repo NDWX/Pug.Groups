@@ -47,6 +47,9 @@ jobs:
       - name: Build solution
         run: dotnet build --nologo --no-restore --configuration ${{env.BuildConfiguration}} ${{env.Solution}}
 
+      - name: Run tests
+        run: dotnet test --nologo --no-restore --no-build --configuration ${{env.BuildConfiguration}} --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover ${{env.Solution}}
+
       - name: End Sonar scan
         run: dotnet sonarscanner end /d:sonar.token=${{ secrets.SONAR_TOKEN }}
         env:

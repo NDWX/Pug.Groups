@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -9,7 +9,7 @@ using Pug.Effable;
 using Pug.Groups.Common;
 using Pug.Groups.Models;
 
-namespace Pug.Groups.PostgresData
+namespace Pug.Groups.SQLiteData
 {
 	public class DapperDataSession : ApplicationDataSession, IDataSession
 	{
@@ -25,9 +25,12 @@ namespace Pug.Groups.PostgresData
 		{
 			return new
 			{
-				groupInfo.Identifier, groupInfo.Definition.Domain, groupInfo.Definition.Name, groupInfo.Definition.Description,
-				registrationUser = groupInfo.RegistrationInfo?.Actor ?? string.Empty, 
-				registrationTimestamp = groupInfo.RegistrationInfo?.Timestamp ?? DateTime.Now
+				identifier = groupInfo.Identifier, 
+				domain = groupInfo.Definition.Domain, 
+				name = groupInfo.Definition.Name, 
+				description = groupInfo.Definition.Description,
+				registrationUser = groupInfo.RegistrationInfo?.Actor ?? string.Empty,
+				registrationTimestamp = groupInfo.RegistrationInfo?.Timestamp ?? DateTime.UtcNow
 			};
 		}
 
@@ -65,13 +68,13 @@ namespace Pug.Groups.PostgresData
 		{
 			return Connection.QueryAsync(
 					GetGroupsQuery,
-					param: new { domain, name },
+					param: new { domain = domain, name = name },
 					splitOn: "domain, actor, actor",
 					map: MapToGroupInfo
 				);
 		}
 
-		public Task<GroupDefinition?> GetGroupDefinitionAsync( string identifier )
+		public Task<GroupDefinition> GetGroupDefinitionAsync( string identifier )
 		{
 			return
 				Connection.QuerySingleOrDefaultAsync<GroupDefinition>(
@@ -83,11 +86,11 @@ namespace Pug.Groups.PostgresData
 		}
 
 		private const string GetGroupInfoQuery =
-			@"select identifier, domain, name, description, registrationUser as actor, registrationTimestamp, lastUpdateUser as actor, lastUpdateTimestamp
+			@"select identifier, domain, name, description, registrationUser as actor, registrationTimestamp as timestamp, lastUpdateUser as actor, lastUpdateTimestamp as timestamp
 				from ""group""
 				where identifier = @identifier;";
 
-		public async Task<GroupInfo?> GetGroupInfoAsync( string identifier )
+		public async Task<GroupInfo> GetGroupInfoAsync( string identifier )
 		{
 			return ( await
 						Connection.QueryAsync(
@@ -99,7 +102,7 @@ namespace Pug.Groups.PostgresData
 					).FirstOrDefault();
 		}
 
-		public GroupInfo? GetGroupInfo( string identifier )
+		public GroupInfo GetGroupInfo( string identifier )
 		{
 			return Connection.Query(
 									GetGroupInfoQuery,
@@ -143,7 +146,7 @@ namespace Pug.Groups.PostgresData
 
 		private const string GetSubjectMembershipsQuery =
 			@"select ms.subjectType as type, ms.subjectIdentifier as identifier, ms.""group"", ms.registrationTimestamp as timestamp, ms.registrationUser as actor
-				from membership	ms
+				from membership ms
 				inner join ""group"" gp on ms.""group"" = gp.identifier
 				where ms.subjectType = @subjectType and ms.subjectIdentifier = @subjectIdentifier and (gp.domain = @domain or coalesce(@domain, '') = '')";
 
@@ -167,10 +170,10 @@ namespace Pug.Groups.PostgresData
 
 		private const string GetSubjectGroupMembershipQuery =
 			@"select subjectType as type, subjectIdentifier as identifier, ""group"", registrationTimestamp as timestamp, registrationUser as actor
-				from membership 
-				where subjectType = @subjectType and subjectIdentifier = @subjectIdentifier and group = @group";
+				from membership
+				where subjectType = @subjectType and subjectIdentifier = @subjectIdentifier and ""group"" = @group";
 
-		public Membership? GetMembership( Subject subject, string group )
+		public Membership GetMembership( Subject subject, string group )
 		{
 			return Connection.Query(
 								GetSubjectGroupMembershipQuery,
@@ -200,7 +203,7 @@ namespace Pug.Groups.PostgresData
 					{
 						subjectType = membership.Subject.Type,
 						subjectIdentifier = membership.Subject.Identifier,
-						membership.Group,
+						group = membership.Group,
 						registrationUser = membership.RegistrationInfo.Actor ?? string.Empty,
 						registrationTimestamp = membership.RegistrationInfo.Timestamp
 					}
@@ -210,7 +213,7 @@ namespace Pug.Groups.PostgresData
 		public Task DeleteAsync( string @group, Subject subject )
 		{
 			return Connection.ExecuteAsync(
-					@"delete from membership 
+					@"delete from membership
 							where subjectType = @subjectType and subjectIdentifier = @subjectIdentifier and ""group"" = @group",
 					param: new { subjectType = subject.Type, subjectIdentifier = subject.Identifier, group }
 				);

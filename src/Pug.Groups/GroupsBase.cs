@@ -18,31 +18,20 @@ namespace Pug.Groups
 			SecurityManager = securityManager ?? throw new ArgumentNullException( nameof(securityManager) );
 		}
 
-		protected void CheckAuthorization( string domain, string operation, string objectType,
-											string objectName = "",
-											string purpose = "", IDictionary<string, string> context = null )
-		{
-			if( context == null )
-				context = new Dictionary<string, string>( 0 );
-
-			bool isAuthorized = SecurityManager.CurrentUser.IsAuthorized(
-				context, operation, objectType, objectName, purpose,
-				domain: domain );
-			if( !isAuthorized )
-				throw new NotAuthorized();
-		}
-
-		protected async Task CheckAuthorizationAsync( string domain, string operation, string objectType,
-													string objectName = "",
-													string purpose = "",
+		protected async Task CheckAuthorizationAsync( string operation, 
+													NounQualifier domainObject, string purpose = "",
 													IDictionary<string, string> context = null )
 		{
 			if( context == null )
 				context = new Dictionary<string, string>( 0 );
 
 			bool isAuthorized = await SecurityManager.CurrentUser.IsAuthorizedAsync(
-									context, operation, objectType, objectName, purpose,
-									domain: domain );
+														context,
+														operation,
+														domainObject,
+														purpose
+													)
+													.ConfigureAwait( false );
 
 			if( !isAuthorized )
 				throw new NotAuthorized();

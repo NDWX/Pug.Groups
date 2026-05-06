@@ -15,11 +15,12 @@ namespace Pug.Groups.Common
 		/// <param name="identifierGenerator"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentNullException"></exception>
+		[Obsolete( "Use AddPrincipalRoleProvider instead.")]
 		public static IServiceCollection AddUserRoleProvider(this IServiceCollection serviceCollection, Options options, IdentifierGenerator identifierGenerator)
 		{
 			if(options == null) throw new ArgumentNullException(nameof(options));
 			
-			serviceCollection.AddSingleton(
+			serviceCollection.AddSingleton<IUserRoleProvider>(
 					provider =>
 					{
 						IApplicationData<IDataSession> applicationData = 
@@ -33,6 +34,40 @@ namespace Pug.Groups.Common
 
 					}
 				);
+
+			serviceCollection.AddSingleton<IPrincipalRoleProvider>( 
+				provider => new UserRoleProviderAdapter( provider.GetService<IUserRoleProvider>() )
+			);
+			
+			return serviceCollection;
+		}
+		
+		/// <summary>
+		/// Registers instance of IUSerRoleProvider service required by Pug.Application.Security.SecurityManager.
+		/// </summary>
+		/// <param name="serviceCollection"></param>
+		/// <param name="options"></param>
+		/// <param name="identifierGenerator"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentNullException"></exception>
+		public static IServiceCollection AddPrincipalRoleProvider(this IServiceCollection serviceCollection, Options options, IdentifierGenerator identifierGenerator)
+		{
+			if(options == null) throw new ArgumentNullException(nameof(options));
+			
+			serviceCollection.AddSingleton(
+				provider =>
+				{
+					IApplicationData<IDataSession> applicationData = 
+						provider.GetService<IApplicationData<IDataSession>>();
+						
+					IPrincipalRoleProvider userRoleProvider = new InternalPrincipalRoleProvider(
+						applicationData
+					);
+
+					return userRoleProvider;
+
+				}
+			);
 			
 			return serviceCollection;
 		}

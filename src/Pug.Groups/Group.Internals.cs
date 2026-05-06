@@ -1,4 +1,6 @@
 ﻿using Pug.Application.Data;
+using Pug.Application.Data.Extensions;
+using Pug.Application.Security;
 using Pug.Effable;
 using Pug.Groups.Common;
 using Pug.Groups.Models;
@@ -41,18 +43,12 @@ namespace Pug.Groups
 							if(subject == null)
 								continue;
 
-							Membership membership = new ()
-							{
-								Subject = subject,
-								Group = context.@this.Identifier,
-								RegistrationInfo = new ActionContext<string>()
-								{
-									Timestamp = DateTime.Now,
-									Actor = context.@this.SecurityManager.CurrentUser.Identity.Identifier
-								}
-							};
-
-							await dataSession.InsertAsync(membership);
+							await Helpers.RegisterMembershipAsync(
+								subject,
+								context.@this.Identifier,
+								context.@this.SecurityManager.CurrentUser,
+								dataSession
+							);
 						}
 					},
 					new { subjects, @this = this }
@@ -74,10 +70,19 @@ namespace Pug.Groups
 
 		private async Task _RemoveMemberAsync( Subject subject )
 		{
-			await CheckAuthorizationAsync( _domain, SecurityOperations.DeleteMembership, SecurityObjectTypes.Group, Identifier );
+			await CheckAuthorizationAsync(
+					SecurityOperations.DeleteMembership,
+					new NounQualifier()
+					{
+						Domain = _domain,
+							Type = SecurityObjectTypes.Group,
+							Identifier = Identifier
+					}
+				)
+				.ConfigureAwait( false );
 
 			await ApplicationDataProvider.PerformAsync(
-					action: async (dataSession, context) => { await dataSession.DeleteAsync(context.@this.Identifier, context.subject); },
+					action: async (dataSession, context) => { await dataSession.DeleteAsync(context.@this.Identifier, context.subject).ConfigureAwait( false ); },
 					new { subject, @this = this }
 				).ConfigureAwait(false);
 		}
