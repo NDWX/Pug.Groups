@@ -10,6 +10,7 @@ env:
   Solution: Pug.Groups.slnx
   ModelsProject: src/Pug.Groups.Models/Pug.Groups.Models.csproj
   CommonProject: src/Pug.Groups.Common/Pug.Groups.Common.csproj
+  WebApiProject: src/Pug.Groups.WebApi/Pug.Groups.WebApi.csproj
   MainProject: src/Pug.Groups/Pug.Groups.csproj
 
 jobs:
