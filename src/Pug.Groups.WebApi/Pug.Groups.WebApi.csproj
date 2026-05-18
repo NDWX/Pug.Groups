@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Pug.Groups.Common\Pug.Groups.Common.csproj" />
+    <ProjectReference Include="../Pug.Groups.Common/Pug.Groups.Common.csproj" />
   </ItemGroup>
 
 </Project>

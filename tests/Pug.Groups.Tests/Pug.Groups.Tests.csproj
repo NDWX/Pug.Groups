@@ -24,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Pug.Groups\Pug.Groups.csproj" />
-    <ProjectReference Include="..\..\src\Pug.Groups.Data.SQLite\Pug.Groups.Data.SQLite.csproj" />
+    <ProjectReference Include="../../src/Pug.Groups/Pug.Groups.csproj" />
+    <ProjectReference Include="../../src/Pug.Groups.Data.SQLite/Pug.Groups.Data.SQLite.csproj" />
   </ItemGroup>
 
 </Project>

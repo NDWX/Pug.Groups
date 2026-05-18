@@ -20,7 +20,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Pug.Groups.Data.Common\Pug.Groups.Data.Common.csproj" />
+	  <ProjectReference Include="../Pug.Groups.Data.Common/Pug.Groups.Data.Common.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
