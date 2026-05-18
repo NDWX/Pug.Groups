@@ -8,5 +8,6 @@
   <Project Path="src/Pug.Groups.Data.SQLite/Pug.Groups.Data.SQLite.csproj" />
   <Project Path="src/Pug.Groups.DependencyInjection/Pug.Groups.DependencyInjection.csproj" />
   <Project Path="src/Pug.Groups.Models/Pug.Groups.Models.csproj" />
+  <Project Path="src/Pug.Groups.WebApi/Pug.Groups.WebApi.csproj" />
   <Project Path="src/Pug.Groups/Pug.Groups.csproj" />
 </Solution>

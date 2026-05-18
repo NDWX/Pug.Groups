@@ -10,6 +10,7 @@ env:
   Solution: Pug.Groups.slnx
   ModelsProject: src/Pug.Groups.Models/Pug.Groups.Models.csproj
   CommonProject: src/Pug.Groups.Common/Pug.Groups.Common.csproj
+  WebApiProject: src/Pug.Groups.WebApi/Pug.Groups.WebApi.csproj
   DataCommonProject: src/Pug.Groups.Data.Common/Pug.Groups.Data.Common.csproj
   PostgresDataProject: src/Pug.Groups.Data.Postgres/Pug.Groups.Data.Postgres.csproj
   MainProject: src/Pug.Groups/Pug.Groups.csproj
@@ -71,6 +72,15 @@ jobs:
         run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.CommonProject}}
 
       - name: Publish Common NuGet package to NuGet.org
+        run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Clear packages folder
+        run: rm packages/*.nupkg
+
+      - name: Pack WebApi project
+        run: dotnet pack --output ${{env.PackagesBaseFolder}} --nologo --configuration ${{env.BuildConfiguration}} ${{env.WebApiProject}}
+
+      - name: Publish WebApi NuGet package to NuGet.org
         run: dotnet nuget push ${{env.PackagesBaseFolder}}/*.nupkg --api-key ${{secrets.NUGET_APIKEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Clear packages folder
